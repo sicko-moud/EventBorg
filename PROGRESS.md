@@ -1,18 +1,17 @@
 # PROGRESS
 
-**M1 Web ingest — done (2026-11-21).** Next: M2.
+**M1 Web ingest — done and live (2026-11-21).** Next: M2.
 
 Status
-- 23 sources in sources.yaml: 1 tribe, 2 jsonld, 17 html_llm, ticketmaster, 2 social-only (`type: none`). Handles come from each site's own links.
-- Pipeline: `python -m pipeline run [--force] [--only a,b] [--no-llm]` writes out/events.json, out/sources.json, out/state/*.
-- Local run without keys: 242 events (sonderborg-dk 233, koncertsalen-alsion 38, sdjsymfoni 9; 286 records before dedupe). 20 pytest tests pass.
-- Workflow .github/workflows/pipeline.yml: cron every 15 min + repository_dispatch `inbox`, one concurrency group, restores and force-pushes the orphan `data` branch. test.yml runs pytest.
-- New-event diff is computed; pushable IDs are stored in state/meta.json `push` for M2.
+- Repo https://github.com/sicko-moud/EventBorg (public). Pages from branch `data`: https://sicko-moud.github.io/EventBorg/events.json and /sources.json (ETag, max-age=600).
+- First CI run: 266 events from 10 sources (sonderborg-dk 238, koncertsalen-alsion 39, sonderborg-teater 27, musikskolen 10, sdjsymfoni 9, brinckmanns 7, sergenten 4, others 1–2). 90 summaries; the rest fill in at 25 LLM calls per run.
+- 23 sources in sources.yaml: 1 tribe, 2 jsonld, 17 html_llm, ticketmaster (`disabled` until TICKETMASTER_KEY), 2 social-only.
+- Secrets: GEMINI_API_KEY. Variables: GEMINI_MODEL, LLM_MAX_CALLS. CONTACT_EMAIL is optional; the User-Agent carries the repo URL.
+- `python -m pipeline run [--force] [--only a,b] [--no-llm]`; 20 pytest tests pass. Pushable new-event IDs are in state/meta.json `push` for M2.
 
 Open issues
-- Repo not created yet: `gh` is not logged in. Then enable Pages from branch `data` /root and add secrets.
-- html_llm sources (17) are waiting on GEMINI_API_KEY; ticketmaster is waiting on TICKETMASTER_KEY.
-- nordborghus: robots.txt was unreachable once (retried automatically each interval).
+- gemini-flash-latest is often overloaded (503/timeouts); runs fall back to gemini-flash-lite-latest. Consider making lite the primary (repo variable GEMINI_MODEL).
+- sonderborghus and augustiana failed on the first run (503 / runaway output); they now retry every run until they succeed.
 - ig handles still unknown for Mejeriet, Koncertsalen Alsion, Universe, Nordborghus, Skansen, Sønderborg Teater.
 
 Next step

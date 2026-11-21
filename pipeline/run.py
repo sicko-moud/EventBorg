@@ -74,6 +74,8 @@ def fetch_source(src: dict, st: dict, state: State, ctx_args: tuple) -> bool:
         st["ingested"] = True
     except Skip as e:
         st.update(st=e.code, err=None)
+        if e.code in ("llm_unavailable", "llm_quota"):
+            return False  # no chk stamp: retry on the next run instead of after `every` minutes
     except Blocked as e:
         st.update(st="robots", err=str(e))
     except Exception as e:  # noqa: BLE001 - one broken source must not stop the run
