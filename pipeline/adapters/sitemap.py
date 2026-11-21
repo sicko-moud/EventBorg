@@ -56,6 +56,8 @@ def fetch(src: dict, ctx: Ctx) -> list[dict]:
         except requests.HTTPError as e:
             if e.response is not None and 400 <= e.response.status_code < 500:
                 pages[u] = {"ts": stamp}
+            else:
+                print(f"  skip {u}: {e}")
             continue
         except (Blocked, OSError, ValueError) as e:
             print(f"  skip {u}: {type(e).__name__}")

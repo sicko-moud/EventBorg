@@ -7,7 +7,8 @@ Status
 - Screens: feed (search, quick chips, sticky sections incl. Ongoing, pull-to-refresh, offline/error/empty states), filter sheet (saved), detail (Custom Tab tickets, maps, calendar, share, save, star category/source), saved, sources + source page + "Suggest a source", settings (event/story topics, EN/DA, about/privacy).
 - Data: events.json/sources.json from Pages with ETag, cached in noBackupFilesDir; prefs in DataStore; FCM topics synced from settings (push handling itself is M5).
 - Worker: POST /suggest (deployed); inbox job opens `source`-labelled issues. Privacy page mentions it.
-- Tests: 39 pytest + 13 node (unchanged, all pass).
+- Students (ad hoc, branch `students`, not merged yet): IDA via new `sitemap` adapter (5 local events today, fill spread over ~9 runs, push-silent), 10 SDU student associations as social sources, `students` tag; app "For students" row + chip first + filter + setting (student and youth 15–30 events). APK 0.4.1.
+- Tests: 42 pytest + 13 node (all pass).
 
 Open issues
 - Keys still missing from M3: META_APP_SECRET, META_TOKEN, IG_USER_ID, GH_TOKEN (+ optional WA_*).
