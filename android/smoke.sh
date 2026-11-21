@@ -45,6 +45,7 @@ adb shell am start -W -n app.eventborg/.MainActivity | tee "$OUT/start.txt"
 sleep 12
 dismiss
 shot 01-feed
+tap text "Not now" > /dev/null
 
 # Open the first event: tap the card row left of its first star button.
 xy=$(center content-desc "Save event")

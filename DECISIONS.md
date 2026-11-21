@@ -113,3 +113,5 @@
 - M5: FCM onNewToken clears the stored subscription set and resubscribes (after a backup restore the app otherwise believed it was still subscribed).
 - M5: POST_NOTIFICATIONS was already merged from firebase-messaging; it is now also declared in our manifest. No other permission added.
 - M5: Kotlin unit tests (JUnit 4, test scope only) for the link parser, story/group matcher, poster stripping and event heuristic; CI runs testDebugUnitTest (AGP 9 creates unit-test tasks for debug only) before assembleRelease.
+- M5: The feed's first list item (story strip + notification ask) always exists, possibly empty: LazyColumn keeps its position by key, so an item inserted above the first visible one later would open off-screen (found by the smoke test).
+- M5: Bottom-bar labels auto-shrink (12→9 sp) so the fifth tab fits "Indstillinger" in Danish.

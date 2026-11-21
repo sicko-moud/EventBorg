@@ -8,7 +8,7 @@ Status
 - Notification listener (opt-in; component disabled until the disclosure is accepted): Instagram/Facebook only, matches watch list + listed handles/names, hide-original, optional /story-seen relay. Onboarding tips incl. "Restricted setting" help for sideloaded APKs.
 - Watching tab: profiles and groups by pasted/shared link, suggestions from sources.json, ✓ on first catch, mute/remove; Group posts (7 days, on-phone only) with Open / Add as event.
 - Share target + "Add your event" (paste text/link, pick image, live channels from GET /channels) → /extract → editable draft → /submit.
-- Tests: 42 pytest + 13 node + Kotlin unit tests (link parser, matchers, heuristic) in CI. APK 0.5.0.
+- Tests: 42 pytest + 13 node + Kotlin unit tests (link parser, matchers, heuristic) in CI. CI build + emulator smoke pass: APK 0.5.0, 2.3 MB, cold start 1.0–1.4 s on the CI emulator; share → /extract → draft works live.
 
 Open issues
 - Not tested on a real phone: FCM delivery, the listener against real Instagram/Facebook notification texts (formats are guessed; adjust matcher/tests once seen), Facebook PendingIntent "Open".
