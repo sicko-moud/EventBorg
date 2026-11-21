@@ -42,9 +42,10 @@ jobs:
         id: pipeline
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-flash-latest' }}
-          GEMINI_FALLBACK_MODEL: ${{ vars.GEMINI_FALLBACK_MODEL || 'gemini-flash-lite-latest' }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-flash-lite-latest' }}
+          GEMINI_FALLBACK_MODEL: ${{ vars.GEMINI_FALLBACK_MODEL || 'gemini-flash-latest' }}
           LLM_MAX_CALLS: ${{ vars.LLM_MAX_CALLS || '25' }}
+          LLM_MAX_SECONDS: ${{ vars.LLM_MAX_SECONDS || '480' }}
           TICKETMASTER_KEY: ${{ secrets.TICKETMASTER_KEY }}
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
         run: python -m pipeline run --out out ${{ inputs.force && '--force' || '' }}

@@ -159,5 +159,5 @@ def run(out: Path, only: set[str] | None = None, force: bool = False, use_llm: b
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
             f.write(f"publish={'true' if do_publish else 'false'}\n")
     return {"report": report, "events": len(pub_events), "merged_from": len(events), "new": len(new),
-            "pushable": len(pushable), "llm_calls": llm.calls, "llm_pending": pending, "publish": do_publish,
+            "pushable": len(pushable), "llm_calls": llm.calls, "llm_fallbacks": llm.fallbacks, "llm_pending": pending, "publish": do_publish,
             "per_source": {s["id"]: sum(1 for e in pub_events if any(x["id"] == s["id"] for x in e["src"])) for s in sources}}

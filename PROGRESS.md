@@ -10,8 +10,8 @@ Status
 - `python -m pipeline run [--force] [--only a,b] [--no-llm]`; 20 pytest tests pass. Pushable new-event IDs are in state/meta.json `push` for M2.
 
 Open issues
-- gemini-flash-latest is often overloaded (503/timeouts); runs fall back to gemini-flash-lite-latest. Consider making lite the primary (repo variable GEMINI_MODEL).
-- sonderborghus and augustiana failed on the first run (503 / runaway output); they now retry every run until they succeed.
+- LLM: gemini-flash-lite-latest is primary; gemini-flash-latest only retries calls lite fails on (`llm_fallbacks=` in the run summary).
+- sonderborghus (72) and augustiana (2) extract fine on lite locally; check they show up in the next CI run.
 - ig handles still unknown for Mejeriet, Koncertsalen Alsion, Universe, Nordborghus, Skansen, Sønderborg Teater.
 
 Next step

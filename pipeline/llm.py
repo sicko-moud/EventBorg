@@ -15,22 +15,29 @@ def content_hash(*parts: str) -> str:
 
 
 class LLM:
-    """Gemini via REST with JSON-schema output. Results are cached by content hash in state."""
+    """Gemini via REST with JSON-schema output. Results are cached by content hash in state.
+
+    Every call goes to the primary model first; only a call it fails on (5xx, timeout, quota, unusable reply)
+    is retried once on the fallback model. A model that hits its quota is skipped for the rest of the run,
+    and all calls share one wall-clock budget so slow replies can't push the CI job past its timeout."""
 
     def __init__(self, cache: dict, enabled: bool = True):
         self.key = env("GEMINI_API_KEY") if enabled else None
-        self.model = env("GEMINI_MODEL", "gemini-flash-latest")
-        self.fallback = env("GEMINI_FALLBACK_MODEL", "gemini-flash-lite-latest")
+        self.models = [m for m in dict.fromkeys([env("GEMINI_MODEL", "gemini-flash-lite-latest"),
+                                                  env("GEMINI_FALLBACK_MODEL", "gemini-flash-latest")]) if m]
         self.max_calls = int(env("LLM_MAX_CALLS", "25"))
+        self.deadline = time.monotonic() + int(env("LLM_MAX_SECONDS", "480"))
         self.cache = cache
         self.calls = 0
         self.errors = 0
+        self.fallbacks = 0
         self._last = 0.0
-        self._primary_down = False
+        self._exhausted: set[str] = set()
 
     @property
     def available(self) -> bool:
-        return bool(self.key) and self.calls < self.max_calls
+        return (bool(self.key) and self.calls < self.max_calls and time.monotonic() < self.deadline
+                and any(m not in self._exhausted for m in self.models))
 
     def cached(self, key: str):
         hit = self.cache.get(key)
@@ -51,44 +58,53 @@ class LLM:
         gen = {"responseMimeType": "application/json", "responseSchema": schema, "temperature": 0.1,
                "maxOutputTokens": 32768, "thinkingConfig": {"thinkingLevel": env("GEMINI_THINKING", "low")}}
         body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": gen}
-        # A busy primary model is skipped for the rest of the run; the fallback model takes over.
-        models = ([] if self._primary_down else [self.model]) + [m for m in [self.fallback] if m and m != self.model]
-        for model in models:
+        for model in self.models:
+            if model in self._exhausted:
+                continue
             if not self.available:
-                return None
-            wait = 4.5 - (time.monotonic() - self._last)
-            if wait > 0:
-                time.sleep(wait)
-            self._last = time.monotonic()
-            self.calls += 1
-            try:
-                r = requests.post(API.format(model=model), headers={"x-goog-api-key": self.key}, json=body, timeout=90)
-                if r.status_code == 429:
-                    self.calls = self.max_calls
-                    return None
-                if r.status_code in (500, 503, 504):
-                    print(f"  llm {model}: HTTP {r.status_code}, switching model")
-                    self._primary_down = self._primary_down or model == self.model
-                    continue
-                if r.status_code == 400 and "thinking" in r.text.lower() and "thinkingConfig" in gen:
-                    del gen["thinkingConfig"]
-                    r = requests.post(API.format(model=model), headers={"x-goog-api-key": self.key}, json=body, timeout=90)
-                r.raise_for_status()
-                cands = r.json().get("candidates") or []
-                parts = cands[0].get("content", {}).get("parts", []) if cands else []
-                text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
-                try:
-                    return json.loads(text) if text else None
-                except ValueError:
-                    reason = cands[0].get("finishReason") if cands else None
-                    print(f"  llm {model}: bad JSON ({len(text)} chars, finish={reason}), switching model")
-                    continue
-            except requests.Timeout:
-                print(f"  llm {model}: timeout, switching model")
-                self._primary_down = self._primary_down or model == self.model
-            except (requests.RequestException, ValueError) as e:
-                self.errors += 1
-                print(f"  llm error: {type(e).__name__}: {str(e)[:160]}")
-                return None
+                break
+            if model != self.models[0]:
+                self.fallbacks += 1
+            result, why = self._call(model, body)
+            if why is None:
+                return result
+            more = model != self.models[-1]
+            print(f"  llm {model}: {why}{', trying fallback' if more else ''}")
         self.errors += 1
         return None
+
+    def _call(self, model: str, body: dict) -> tuple[object, str | None]:
+        """One request; returns (parsed JSON, None) or (None, failure reason)."""
+        wait = 4.5 - (time.monotonic() - self._last)
+        if wait > 0:
+            time.sleep(wait)
+        self._last = time.monotonic()
+        self.calls += 1
+        timeout = max(5.0, min(90.0, self.deadline - time.monotonic()))
+        url, headers = API.format(model=model), {"x-goog-api-key": self.key}
+        gen = body["generationConfig"]
+        try:
+            r = requests.post(url, headers=headers, json=body, timeout=timeout)
+            if r.status_code == 400 and "thinking" in r.text.lower() and "thinkingConfig" in gen:
+                body = {**body, "generationConfig": {k: v for k, v in gen.items() if k != "thinkingConfig"}}
+                r = requests.post(url, headers=headers, json=body, timeout=timeout)
+        except requests.Timeout:
+            return None, "timeout"
+        except requests.RequestException as e:
+            return None, f"{type(e).__name__}: {str(e)[:160]}"
+        if r.status_code == 429:
+            self._exhausted.add(model)
+            return None, "HTTP 429 (quota), skipped for the rest of this run"
+        if r.status_code >= 400:
+            return None, f"HTTP {r.status_code}: {r.text[:160]}"
+        try:
+            cands = r.json().get("candidates") or []
+        except ValueError:
+            return None, "non-JSON response"
+        parts = cands[0].get("content", {}).get("parts", []) if cands else []
+        text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+        try:
+            return json.loads(text), None
+        except ValueError:
+            reason = cands[0].get("finishReason") if cands else None
+            return None, f"unusable reply ({len(text)} chars, finish={reason})"

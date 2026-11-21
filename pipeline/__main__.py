@@ -24,7 +24,7 @@ def main() -> int:
         print(f"{row['id']:24} {row['type']:12} {row['st']:16} {row['raw']:5} {row['kept']:5} "
               f"{res['per_source'][row['id']]:5}  {drops}{'  ERR ' + row['err'] if row['err'] else ''}")
     print(f"\nevents={res['events']} (from {res['merged_from']} before dedupe) new={res['new']} "
-          f"pushable={res['pushable']} llm_calls={res['llm_calls']} llm_pending={res['llm_pending']} publish={res['publish']}")
+          f"pushable={res['pushable']} llm_calls={res['llm_calls']} llm_fallbacks={res['llm_fallbacks']} llm_pending={res['llm_pending']} publish={res['publish']}")
     return 0
 
 

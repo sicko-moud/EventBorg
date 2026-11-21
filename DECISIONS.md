@@ -14,11 +14,12 @@
 - M1: URL-based dedupe ignores homepages and listing pages (they don't identify one event).
 - M1: IDs stay stable: a new ID that dedupe-matches last run's event re-uses the old ID; same-title shows on one day get time-qualified IDs.
 - M1: Data branch is only force-pushed when events/sources/LLM cache/seen IDs change, or every 3 h, to stay well under Pages build limits.
-- M1: GEMINI_MODEL defaults to the `gemini-flash-latest` alias; override via repo variable.
+- M1: GEMINI_MODEL defaults to the `gemini-flash-lite-latest` alias (fast, rarely overloaded on the free tier); override via repo variable.
 - M1: E-mail addresses and phone numbers are scrubbed from descriptions.
 - M1: A date-only record joins at most one timed cluster in dedupe (it had merged a 17:30 and a 20:30 show); merged events keep the timed start.
 - M1: normalize_title drops "// Venue" suffixes, (XX) country codes and UDSOLGT/AFLYST/ekstra noise words, and folds Danish letters.
 - M1: Venue town/zip swapped in source data (town "6400", zip "Sønderborg") is corrected.
 - M1: User-Agent contact is the repo URL (CONTACT_EMAIL optional); Ticketmaster shows status `disabled` without a key.
-- M1: gemini-flash-latest was overloaded (503/timeouts) on the free tier; on 503/timeout/bad JSON the run switches to GEMINI_FALLBACK_MODEL (gemini-flash-lite-latest) for its remaining calls.
+- M1: Per-call fallback: only a call lite fails on (5xx, timeout, 429, unusable/truncated JSON) is retried once on GEMINI_FALLBACK_MODEL (gemini-flash-latest); a model that returns 429 is skipped for the rest of the run.
+- M1: All LLM calls share a LLM_MAX_SECONDS (480) wall-clock budget, so slow models can't push the job past its 14-min CI timeout.
 - M1: thinkingLevel "low" + maxOutputTokens 32768 (the only thinking setting both models accept); extracted descriptions capped at 200 chars so a 70-event page fits one reply.
