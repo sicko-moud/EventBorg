@@ -1,6 +1,6 @@
 # PROGRESS
 
-**M5 App push, stories, watch list, share — built on branch `m5` (2026-11-21), not merged to main yet.** Next: M6.
+**M5 App push, stories, watch list, share — done, merged to main (2026-11-21).** Next: M6.
 
 Status
 - Push: FCM service handles event / grouped / story data messages on three channels (New events, Story alerts, Group posts); pushed events go into the cache at once (pushed.json); Save and Add-to-calendar actions; onNewToken resubscribes topics. Android 13+ permission explained once on the feed.
@@ -16,4 +16,4 @@ Open issues
 - No app baseline profile and no release keystore yet (M6).
 
 Next step (M6)
-- Merge `m5` into main, then size/performance pass, baseline profile, README setup guide, keep-alive workflow.
+- Size/performance pass, baseline profile, README setup guide, keep-alive workflow.
