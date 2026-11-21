@@ -34,6 +34,10 @@ data class UserPrefs(
     val notify: String = NOTIFY_ALL,
     val stories: String = NOTIFY_FAV,
     val studentsFirst: Boolean = true,
+    val listen: Boolean = false,
+    val hideOriginal: Boolean = true,
+    val shareStories: Boolean = false,
+    val notifAsked: Boolean = false,
 ) {
     val faves get() = Faves(saved, favCats, favSrcs)
 }
@@ -55,6 +59,10 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
                 notify = p[NOTIFY] ?: NOTIFY_ALL,
                 stories = p[STORIES] ?: NOTIFY_FAV,
                 studentsFirst = p[STUDENTS] ?: true,
+                listen = p[LISTEN] ?: false,
+                hideOriginal = p[HIDE] ?: true,
+                shareStories = p[SHARE] ?: false,
+                notifAsked = p[ASKED] ?: false,
             )
         }
         .stateIn(scope, SharingStarted.Eagerly, UserPrefs())
@@ -70,6 +78,13 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
     fun setNotify(v: String) = edit { it[NOTIFY] = v }
     fun setStories(v: String) = edit { it[STORIES] = v }
     fun setStudentsFirst(v: Boolean) = edit { it[STUDENTS] = v }
+    fun setListen(v: Boolean) = edit { it[LISTEN] = v }
+    fun setHideOriginal(v: Boolean) = edit { it[HIDE] = v }
+    fun setShareStories(v: Boolean) = edit { it[SHARE] = v }
+    fun setNotifAsked() = edit { it[ASKED] = true }
+    suspend fun save(id: String) {
+        ds.edit { it[SAVED] = it[SAVED].orEmpty() + id }
+    }
 
     suspend fun subscribed(): Set<String> = ds.data.first()[TOPICS].orEmpty()
     suspend fun setSubscribed(topics: Set<String>) {
@@ -85,5 +100,9 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
         val STORIES = stringPreferencesKey("stories")
         val TOPICS = stringSetPreferencesKey("topics")
         val STUDENTS = booleanPreferencesKey("students_first")
+        val LISTEN = booleanPreferencesKey("listen")
+        val HIDE = booleanPreferencesKey("hide_original")
+        val SHARE = booleanPreferencesKey("share_stories")
+        val ASKED = booleanPreferencesKey("notif_asked")
     }
 }

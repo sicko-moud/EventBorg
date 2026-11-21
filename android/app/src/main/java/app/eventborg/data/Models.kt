@@ -76,3 +76,41 @@ val CATEGORIES = listOf(
     "music", "nightlife", "theatre_culture", "exhibitions", "food_drink", "sports", "family_kids", "students",
     "talks_learning", "markets", "outdoor_nature", "festivals", "community", "business", "other",
 )
+
+@Serializable
+data class Draft(
+    val title: String? = null,
+    val start: String? = null,
+    val end: String? = null,
+    val venue: String? = null,
+    val address: String? = null,
+    val town: String? = null,
+    val price: String? = null,
+    val url: String? = null,
+    val description: String? = null,
+    val organizer: String? = null,
+    val age: String? = null,
+    val language: String? = null,
+    val category: String? = null,
+    val summary_en: String? = null,
+    val summary_da: String? = null,
+)
+
+@Serializable
+data class Extracted(
+    val ok: Boolean = false,
+    val is_event: Boolean = false,
+    val reason: String? = null,
+    val draft: Draft? = null,
+    val tok: String? = null,
+    val err: String? = null,
+)
+
+@Serializable
+data class Channels(val ig: String? = null, val wa: String? = null)
+
+@Serializable
+data class RemoteStory(val sourceId: String, val name: String, val url: String? = null, val ts: Long)
+
+@Serializable
+data class StoriesResp(val stories: List<RemoteStory> = emptyList())

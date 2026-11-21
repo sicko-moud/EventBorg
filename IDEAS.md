@@ -34,3 +34,10 @@
 - [done] SDU Sønderborg student associations as social sources (story alerts, IG polling). Value medium, cost low.
 - [M7] SDU "Studiestart"/intro-week programme as a yearly html_llm source once SDU publishes a public page for it. Value medium, cost low.
 - [M7] Push for student events even in "Favourites only" mode when "Student events first" is on (topic tag_students). Value medium, cost low.
+
+## M5 — push, stories, watch list, share
+- [done] Listener component ships disabled and is enabled only after the disclosure is accepted, so EventBorg isn't even listed under Notification access before opt-in. Value high (trust), cost low.
+- [done] "Restricted setting" help for sideloaded APKs (Android 13+ blocks notification access until App info → ⋮ → Allow restricted settings). Value high (setup fails otherwise), cost low.
+- [done] Story circles dim once tapped (seen), like Instagram. Value medium, cost low.
+- [done] "Add your event" also takes pasted text/links and a picked image (photo picker, no permission) into the same draft flow as sharing. Value high, cost low.
+- [M7] "New since last visit" dot on feed cards for events that arrived by push or since the last open. Value medium, cost low.

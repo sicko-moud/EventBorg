@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -91,7 +92,7 @@ fun SourceRow(s: Source, fav: Boolean, onFav: () -> Unit, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SourcesScreen(openSource: (String) -> Unit) {
+fun SourcesScreen(openSource: (String) -> Unit, openAddEvent: () -> Unit) {
     val g = LocalContext.current.graph
     val data by g.repo.data.collectAsStateWithLifecycle()
     val prefs by g.prefs.state.collectAsStateWithLifecycle()
@@ -109,6 +110,20 @@ fun SourcesScreen(openSource: (String) -> Unit) {
         },
     ) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 88.dp)) {
+            item("add_event") {
+                Row(
+                    Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = openAddEvent).padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        stringResource(R.string.ae_link),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.primary)
+                }
+            }
             val problem = status.problem
             when {
                 data.sources.isNotEmpty() -> item("intro") { Hint(stringResource(R.string.sources_intro, data.sources.size)) }

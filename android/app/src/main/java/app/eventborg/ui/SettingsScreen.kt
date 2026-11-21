@@ -39,13 +39,18 @@ import app.eventborg.data.NOTIFY_ALL
 import app.eventborg.data.NOTIFY_FAV
 import app.eventborg.data.NOTIFY_OFF
 import app.eventborg.graph
+import app.eventborg.notify.Listen
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(openListener: () -> Unit, openAddEvent: () -> Unit) {
     val ctx = LocalContext.current
     val g = ctx.graph
     val prefs by g.prefs.state.collectAsStateWithLifecycle()
+    val listening = rememberOnResume { Listen.granted(ctx) } && prefs.listen
+    val blocked = !rememberOnResume { g.notifier.enabled }
     var lang by remember { mutableStateOf(Lang.current(ctx)) }
     val dk = isDanish(uiLocale())
     val pageLang = if (dk) "da" else "en"
@@ -71,6 +76,30 @@ fun SettingsScreen() {
             ) { g.prefs.setStories(it) }
             Hint0(stringResource(R.string.set_stories_hint))
             if (!BuildConfig.FIREBASE) Hint0(stringResource(R.string.set_no_push))
+            if (blocked && (BuildConfig.FIREBASE || prefs.listen)) {
+                Link(stringResource(R.string.set_blocked)) { Listen.openAppNotifications(ctx, ctx.packageName) }
+            }
+
+            Heading(stringResource(R.string.set_detect_h))
+            Row(
+                Modifier.fillMaxWidth().heightIn(min = 56.dp).clickable(onClick = openListener),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
+                    Text(stringResource(R.string.set_detect), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(if (listening) R.string.on else R.string.off),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+            }
+            SwitchRow(stringResource(R.string.set_hide), prefs.hideOriginal, stringResource(R.string.set_hide_hint)) { g.prefs.setHideOriginal(it) }
+            SwitchRow(stringResource(R.string.set_share), prefs.shareStories, stringResource(R.string.set_share_hint)) { g.prefs.setShareStories(it) }
+
+            Heading(stringResource(R.string.ae_title))
+            Link(stringResource(R.string.ae_title)) { openAddEvent() }
 
             Heading(stringResource(R.string.set_language))
             Radios(lang, listOf("" to R.string.lang_system, "en" to R.string.lang_en, "da" to R.string.lang_da)) {

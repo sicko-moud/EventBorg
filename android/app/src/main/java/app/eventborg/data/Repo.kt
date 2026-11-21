@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import java.io.File
 import java.io.IOException
 import java.time.OffsetDateTime
@@ -34,30 +36,55 @@ enum class Problem { OFFLINE, SERVER }
 
 data class Status(val ready: Boolean = false, val refreshing: Boolean = false, val problem: Problem? = null)
 
-class Repo(ctx: Context, private val http: () -> OkHttpClient, private val scope: CoroutineScope) {
+class Repo(
+    ctx: Context,
+    private val http: () -> OkHttpClient,
+    private val scope: CoroutineScope,
+    private val alongside: () -> Unit = {},
+) {
     private val dir: File = ctx.noBackupFilesDir
     private val _data = MutableStateFlow(Data())
     private val _status = MutableStateFlow(Status())
     val data: StateFlow<Data> = _data
     val status: StateFlow<Status> = _status
     private var job: Job? = null
+    private var loadJob: Job? = null
+    private val lock = Any()
     private var lastOk = 0L
     @Volatile private var foreground = false
 
+    // Reads the cache only: the network is used once the app is on screen (onStart), never for a push or listener start.
     fun load() {
-        _status.update { it.copy(refreshing = true) }
-        job = scope.launch {
+        loadJob = scope.launch {
             withContext(Dispatchers.IO) { runCatching { publish(read(EVENTS), read(SOURCES)) } }
             _status.update { it.copy(ready = true) }
-            fetch()
         }
+    }
+
+    // An event that arrived by push shows up at once and stays until a newer events.json replaces it.
+    fun insertPushed(e: Event) = synchronized(lock) {
+        val list = readPushed().filter { it.ev.id != e.id } + Pushed(System.currentTimeMillis(), e)
+        writePushed(list.takeLast(50))
+        runCatching { publish(read(EVENTS), read(SOURCES)) }
+        Unit
+    }
+
+    private fun readPushed(): List<Pushed> =
+        read(PUSHED)?.let { runCatching { JsonFmt.decodeFromString(PUSHED_LIST, it) }.getOrNull() }.orEmpty()
+
+    private fun writePushed(list: List<Pushed>) {
+        runCatching { File(dir, PUSHED).writeText(JsonFmt.encodeToString(PUSHED_LIST, list)) }
     }
 
     // A job that is only waiting to retry gets replaced; one that is downloading is left alone.
     fun refresh() {
         if (job?.isActive == true && _status.value.refreshing) return
         job?.cancel()
-        job = scope.launch { fetch() }
+        _status.update { it.copy(refreshing = true) }
+        job = scope.launch {
+            loadJob?.join()
+            fetch()
+        }
     }
 
     fun onStart() {
@@ -84,6 +111,7 @@ class Repo(ctx: Context, private val http: () -> OkHttpClient, private val scope
         val problem = withContext(Dispatchers.IO) {
             try {
                 val (e, s) = coroutineScope {
+                    launch { runCatching { alongside() } }
                     val ev = async { download(EVENTS) }
                     val src = async { download(SOURCES) }
                     ev.await() to src.await()
@@ -129,21 +157,30 @@ class Repo(ctx: Context, private val http: () -> OkHttpClient, private val scope
         }
     }
 
-    private fun publish(events: String?, sources: String?) {
+    private fun publish(events: String?, sources: String?) = synchronized(lock) {
         val now = ZonedDateTime.now(ZONE)
         val feed = events?.let { JsonFmt.decodeFromString(Feed.serializer(), it) }
         val src = sources?.let { JsonFmt.decodeFromString(SourcesFile.serializer(), it) }
-        val evs = feed?.events.orEmpty().distinctBy { it.id }.mapNotNull(::toEv).filter { it.end.isAfter(now) }.sortedBy { it.start }
-        _data.value = Data(
-            events = evs,
-            sources = src?.sources.orEmpty().sortedBy { it.n.lowercase() },
-            gen = feed?.gen?.let { runCatching { OffsetDateTime.parse(it).atZoneSameInstant(ZONE) }.getOrNull() },
-        )
+        val gen = feed?.gen?.let { runCatching { OffsetDateTime.parse(it).atZoneSameInstant(ZONE) }.getOrNull() }
+        val genMs = gen?.toInstant()?.toEpochMilli() ?: 0L
+        val pushed = readPushed()
+        val live = pushed.filter { it.at > genMs }
+        if (live.size != pushed.size) writePushed(live)
+        val listed = feed?.events.orEmpty()
+        val ids = listed.map { it.id }.toSet()
+        val all = listed + live.map { it.ev }.filter { it.id !in ids }
+        val evs = all.distinctBy { it.id }.mapNotNull(::toEv).filter { it.end.isAfter(now) }.sortedBy { it.start }
+        _data.value = Data(events = evs, sources = src?.sources.orEmpty().sortedBy { it.n.lowercase() }, gen = gen)
     }
+
+    @Serializable
+    private class Pushed(val at: Long, val ev: Event)
 
     private companion object {
         const val EVENTS = "events.json"
         const val SOURCES = "sources.json"
+        const val PUSHED = "pushed.json"
+        val PUSHED_LIST = ListSerializer(Pushed.serializer())
         val RETRY_MS = longArrayOf(3_000, 10_000, 30_000)
     }
 }

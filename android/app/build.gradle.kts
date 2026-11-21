@@ -37,8 +37,8 @@ android {
         applicationId = "app.eventborg"
         minSdk = 26
         targetSdk = 37
-        versionCode = 5
-        versionName = "0.4.1"
+        versionCode = 6
+        versionName = "0.5.0"
         buildConfigField("String", "DATA_URL", "\"https://sicko-moud.github.io/EventBorg/\"")
         buildConfigField("String", "WORKER_URL", "\"https://eventborg.eventborg-worker.workers.dev\"")
         buildConfigField("boolean", "FIREBASE", "${firebase != null}")
@@ -110,4 +110,5 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.okhttp)
     implementation(libs.firebase.messaging)
+    testImplementation(libs.junit)
 }

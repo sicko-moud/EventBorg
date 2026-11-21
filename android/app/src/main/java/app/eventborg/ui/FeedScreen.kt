@@ -1,5 +1,6 @@
 package app.eventborg.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -64,7 +65,10 @@ import app.eventborg.data.matchesQuery
 import app.eventborg.data.queryTokens
 import app.eventborg.data.sectioned
 import app.eventborg.data.studentPicks
+import app.eventborg.data.StoryItem
 import app.eventborg.graph
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 fun categoryNames(): Map<String, String> {
@@ -99,6 +103,15 @@ fun FeedScreen(open: (String) -> Unit) {
         sectioned(list, now.toLocalDate())
     }
     val picks = remember(data, now, prefs.studentsFirst) { if (prefs.studentsFirst) studentPicks(data.events, now) else emptyList() }
+    val askNotify = notifyAskNeeded(prefs)
+    val stories by g.stories.items.collectAsStateWithLifecycle()
+    val watch by g.watch.state.collectAsStateWithLifecycle()
+    val strip = remember(stories, watch, prefs.favSrcs, now) {
+        val cut = now.toInstant().toEpochMilli() - 24 * 3600_000L
+        val mine = prefs.favSrcs + watch.profiles.map { it.key }
+        stories.filter { it.ts > cut && it.key !in watch.muted }
+            .sortedWith(compareByDescending<StoryItem> { it.key in mine }.thenByDescending { it.ts })
+    }
 
     Scaffold(
         topBar = {
@@ -111,6 +124,22 @@ fun FeedScreen(open: (String) -> Unit) {
             modifier = Modifier.padding(pad).fillMaxSize(),
         ) {
             LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
+                if (strip.isNotEmpty()) {
+                    item("stories") {
+                        StoryStrip(
+                            strip,
+                            onOpen = { s ->
+                                g.scope.launch(Dispatchers.IO) { g.stories.seen(s.key) }
+                                ctx.openApp(s.url)
+                            },
+                            onMute = { s ->
+                                g.watch.setMuted(s.key, true)
+                                Toast.makeText(ctx, ctx.getString(R.string.muted_toast, s.name), Toast.LENGTH_LONG).show()
+                            },
+                        )
+                    }
+                }
+                if (askNotify) item("ask") { NotifyAsk { g.prefs.setNotifAsked() } }
                 item("quick") { QuickChips(f, prefs.studentsFirst) { g.prefs.setFilter(it) } }
                 val problem = status.problem
                 if (problem != null && data.events.isNotEmpty()) {

@@ -3,4 +3,5 @@
     <style name="Theme.EventBorg" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/window_bg</item>
     </style>
+    <style name="Theme.EventBorg.Trampoline" parent="android:Theme.Translucent.NoTitleBar" />
 </resources>

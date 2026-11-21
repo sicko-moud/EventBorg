@@ -237,16 +237,17 @@ fun Context.openMap(e: Event) {
     start(Intent(Intent.ACTION_VIEW, Uri.parse(uri)))
 }
 
-fun Context.addToCalendar(ev: Ev) {
+fun Context.addToCalendar(ev: Ev) = start(calendarIntent(ev))
+
+fun calendarIntent(ev: Ev): Intent {
     val e = ev.e
-    val i = Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
+    return Intent(Intent.ACTION_INSERT, CalendarContract.Events.CONTENT_URI)
         .putExtra(CalendarContract.Events.TITLE, e.t)
         .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, ev.start.toInstant().toEpochMilli())
         .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, ev.end.toInstant().toEpochMilli())
         .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, e.ad)
         .putExtra(CalendarContract.Events.EVENT_LOCATION, listOfNotNull(e.v?.n, e.v?.addr, e.v?.town).joinToString(", "))
         .putExtra(CalendarContract.Events.DESCRIPTION, listOfNotNull(e.url ?: e.src.firstOrNull()?.url).joinToString("\n"))
-    start(i)
 }
 
 fun Context.share(ev: Ev, locale: Locale) {

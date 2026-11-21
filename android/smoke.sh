@@ -61,6 +61,33 @@ tap text "Now" && { shot 04-now; tap text "Now"; }
 tap text "Saved" && shot 05-saved
 tap text "Sources" && shot 06-sources
 tap text "Settings" && shot 07-settings
+tap text "Watching" && shot 08-watching
+if tap text "Set up"; then
+  shot 09-disclosure
+  if tap text "Agree and open Android settings"; then
+    shot 10-permission
+    tap text "Allow" && shot 11-listener-settings
+    adb shell input keyevent KEYCODE_BACK
+    sleep 3
+  fi
+  adb shell input keyevent KEYCODE_BACK
+  sleep 2
+fi
+
+share() { adb shell "am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT '$1' -n app.eventborg/.MainActivity" > /dev/null; }
+share "https://www.instagram.com/mejerietsonderborg/?igsh=abc"
+sleep 4
+shot 12-share-profile
+adb shell input keyevent KEYCODE_BACK
+sleep 1
+share "Julekoncert i Sønderborghus lørdag 13. december 2026 kl. 19.30. Billetter 150 kr. Alle er velkomne."
+sleep 30
+shot 13-draft
+adb shell input keyevent KEYCODE_BACK
+sleep 1
+tap text "Sources" && tap text "Missing an event? Add your event" && shot 14-add-event
+adb shell input keyevent KEYCODE_BACK
+sleep 1
 adb shell input keyevent KEYCODE_BACK
 sleep 1
 
@@ -68,7 +95,8 @@ adb shell cmd locale set-app-locales app.eventborg --locales da
 sleep 3
 adb shell am start -W -n app.eventborg/.MainActivity > /dev/null
 sleep 5
-shot 08-feed-da
+shot 15-feed-da
+tap text "Følger" && shot 16-watching-da
 
 adb logcat -d > "$OUT/logcat.txt"
 if grep -q "FATAL EXCEPTION" "$OUT/logcat.txt"; then
