@@ -93,3 +93,23 @@
 - Students: the app ranks student events first by default (setting "Student events first"): a "For students" row of the next 14 days above the feed, the Students quick chip first, a 🎓 mark on cards, and a "Student events only" filter. The feed sections stay chronological. Youth-tagged events (sonderborg.dk "Unge 15-30 år", which the municipality presents "for young people and students") count as student events too; without them the row is empty most weeks.
 - Students: ten SDU Sønderborg student associations added as social-only sources (ig/fb from SDU's official association list) for story alerts, watch-list suggestions and Instagram post polling. gearsdu.com (G.E.A.R.) is not listed: the domain now serves a gambling-app page; mejeriet.dk is an unrelated firm.
 - Categorizer: "Unge 15-30 år" no longer maps to nightlife (it is an age group, the youth tag covers it), and sport is matched before theatre so sonderborg.dk's "Sport, dans og vandringer" is sports.
+- M5: App start only reads the cache; events.json, sources.json and GET /stories are fetched when the app comes to the foreground, so a push or the listener starting the process never touches the network.
+- M5: Pushed events are kept in pushed.json (noBackupFilesDir) and merged into the feed until an events.json generated after their arrival replaces them.
+- M5: The notification listener ships disabled (android:enabled=false) and is enabled only when the in-app disclosure is accepted; "Turn off detection" disables it again. It also checks the consent flag before reading anything.
+- M5: Story alerts Off: the listener still adds circles to the story strip but shows no alert and never hides the original.
+- M5: "Hide original" cancels Instagram's/Facebook's notification only when an EventBorg story alert stands in for it (shown now or within the 3 h cooldown), watched profiles included; if our alert can't show (notifications or the channel blocked) the original stays.
+- M5: Muted profiles, sources and groups are ignored entirely by the listener (no alert, no hiding, no strip circle).
+- M5: Watched groups: with "Hide original" on, every notification of a watched group is hidden (the user set "All posts" only for EventBorg); event-like posts get an EventBorg alert, the rest are dropped.
+- M5: Group-post heuristic (EN/DA/DE, folded text): date 2, weekday or relative day 1, time 1, price 1, event keyword 2; event when (a day/date and score ≥3) or (keyword and time or price).
+- M5: Poster names are cut from group-post text (everything up to the group name, or a short "Name: " prefix); the notification's large icon (the poster's avatar) is never read, only EXTRA_PICTURE.
+- M5: Watch list, muted keys, group posts and their pictures (≤960 px) live in noBackupFilesDir, so watched profiles don't leave the phone even through Android backup.
+- M5: Notification taps that open another app go through a translucent trampoline activity (marks a story seen; fires the held Facebook PendingIntent with the Android 14+ BAL opt-in, else opens the group page). Add to calendar is a direct immutable PendingIntent; Save and Mute are broadcasts.
+- M5: A story caught in the Facebook app opens the venue's Facebook Page; otherwise the Instagram stories URL.
+- M5: Share target: a share that is mostly a profile/group link (≤100 chars besides the URL) goes to the watch list, anything else to the draft screen. MainActivity is singleTask so shares and notification taps land in EventBorg's own task.
+- M5: Facebook share links: /share/g/<code> is a group, plain /share/<code> a profile/Page (opaque, so the name is asked), /share/p|r|v (posts, reels, videos) are rejected.
+- M5: /extract results are cached in memory per share so rotating the phone doesn't call Gemini again; failures aren't cached.
+- M5: "Watching" is a fifth bottom tab; "Add your event" is reachable from Sources and Settings and also takes pasted text or a picked image (photo picker, no permission).
+- M5: Story circles show initials on a name-coloured circle; no profile pictures are fetched.
+- M5: FCM onNewToken clears the stored subscription set and resubscribes (after a backup restore the app otherwise believed it was still subscribed).
+- M5: POST_NOTIFICATIONS was already merged from firebase-messaging; it is now also declared in our manifest. No other permission added.
+- M5: Kotlin unit tests (JUnit 4, test scope only) for the link parser, story/group matcher, poster stripping and event heuristic; CI runs testDebugUnitTest (AGP 9 creates unit-test tasks for debug only) before assembleRelease.

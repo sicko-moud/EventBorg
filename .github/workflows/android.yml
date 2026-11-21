@@ -31,7 +31,7 @@ jobs:
           GS: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: if [ -n "$GS" ]; then printf '%s' "$GS" > app/google-services.json; fi
 
-      - run: ./gradlew --no-daemon testReleaseUnitTest assembleRelease
+      - run: ./gradlew --no-daemon testDebugUnitTest assembleRelease
 
       - name: APK size
         run: |
