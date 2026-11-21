@@ -32,9 +32,14 @@ def load_config(path: Path = ROOT / "sources.yaml") -> tuple[list[dict], dict]:
     return cfg["sources"], aliases
 
 
+RETRY_NEXT_RUN = {"llm_unavailable", "llm_quota"}
+
+
 def _due(st: dict, src: dict, now: datetime) -> bool:
     chk = st.get("chk")
-    return not chk or now - datetime.fromisoformat(chk) >= timedelta(minutes=src.get("every", 60) - 2)
+    if not chk or st.get("st") in RETRY_NEXT_RUN:
+        return True
+    return now - datetime.fromisoformat(chk) >= timedelta(minutes=src.get("every", 60) - 2)
 
 
 def keep(e: dict, src: dict, now: datetime) -> str | None:
@@ -74,8 +79,6 @@ def fetch_source(src: dict, st: dict, state: State, ctx_args: tuple) -> bool:
         st["ingested"] = True
     except Skip as e:
         st.update(st=e.code, err=None)
-        if e.code in ("llm_unavailable", "llm_quota"):
-            return False  # no chk stamp: retry on the next run instead of after `every` minutes
     except Blocked as e:
         st.update(st="robots", err=str(e))
     except Exception as e:  # noqa: BLE001 - one broken source must not stop the run

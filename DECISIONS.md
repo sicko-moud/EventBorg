@@ -23,3 +23,4 @@
 - M1: Per-call fallback: only a call lite fails on (5xx, timeout, 429, unusable/truncated JSON) is retried once on GEMINI_FALLBACK_MODEL (gemini-flash-latest); a model that returns 429 is skipped for the rest of the run.
 - M1: All LLM calls share a LLM_MAX_SECONDS (480) wall-clock budget, so slow models can't push the job past its 14-min CI timeout.
 - M1: thinkingLevel "low" + maxOutputTokens 32768 (the only thinking setting both models accept); extracted descriptions capped at 200 chars so a 70-event page fits one reply.
+- M1: A source whose last fetch ended in llm_unavailable/llm_quota is due on every run until it succeeds, regardless of its `every` interval.
