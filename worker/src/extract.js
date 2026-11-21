@@ -6,8 +6,8 @@ const API = "https://generativelanguage.googleapis.com/v1beta/models/";
 const MAX_BODY = 2_000_000;
 const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
-const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Copenhagen" }).format(new Date());
-const weekday = () => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Copenhagen", weekday: "long" }).format(new Date());
+export const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Copenhagen" }).format(new Date());
+export const weekday = () => new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/Copenhagen", weekday: "long" }).format(new Date());
 
 async function callModel(env, model, parts, timeoutMs) {
   const gen = {
@@ -33,7 +33,7 @@ async function callModel(env, model, parts, timeoutMs) {
 }
 
 // Both free-tier models return 503 when busy: try primary, fallback, then primary again, within one time budget.
-async function gemini(env, parts) {
+export async function gemini(env, parts) {
   const primary = env.GEMINI_MODEL || "gemini-flash-lite-latest";
   const fallback = env.GEMINI_FALLBACK_MODEL || "gemini-flash-latest";
   const deadline = Date.now() + 45000;

@@ -38,6 +38,7 @@ data class WatchState(
     val groups: List<Group> = emptyList(),
     val muted: Set<String> = emptySet(),
     val posts: List<GroupPost> = emptyList(),
+    val seeded: Set<String> = emptySet(),
 ) {
     val watchedSources: Set<String> get() = profiles.mapNotNull { it.src }.toSet()
 }
@@ -51,6 +52,16 @@ fun sourceStoryUrl(s: Source, fromFacebook: Boolean = false): String? = when {
     s.ig != null -> "https://www.instagram.com/stories/${s.ig.trimStart('@')}/"
     else -> s.fb
 }
+
+// Profile links are saved without their query (tracking like ?igsh=, ?mibextid=); profile.php keeps only its id.
+fun cleanProfileUrl(url: String): String {
+    val q = url.indexOf('?')
+    if (q < 0) return url
+    val id = Regex("[?&]id=(\\d+)").find(url)?.groupValues?.get(1)
+    return url.substring(0, q) + if (url.substring(0, q).endsWith("/profile.php") && id != null) "?id=$id" else ""
+}
+
+fun profileUrl(s: Source) = s.ig?.let { "https://www.instagram.com/${it.trimStart('@')}/" } ?: s.fb
 
 fun profileFor(s: Source) = Profile(
     net = if (s.ig != null) IG else FB,
@@ -99,7 +110,18 @@ class WatchStore(ctx: Context) {
 
     fun pic(id: String) = File(picDir, "$id.jpg")
 
-    fun addProfile(p: Profile) = update { s -> s.copy(profiles = s.profiles.filter { it.key != p.key } + p) }
+    fun addProfile(p: Profile) = update { s ->
+        val clean = p.copy(url = cleanProfileUrl(p.url))
+        s.copy(profiles = s.profiles.filter { it.key != clean.key } + clean)
+    }
+
+    // Sources marked "watch" in sources.json are added once per phone; one the user removes stays removed.
+    fun seed(sources: List<Source>) = update { s ->
+        val fresh = sources.filter { it.dw && storyEligible(it) && it.id !in s.seeded }
+        if (fresh.isEmpty()) return@update s
+        val have = s.profiles.mapNotNull { it.src }.toSet()
+        s.copy(profiles = s.profiles + fresh.filter { it.id !in have }.map(::profileFor), seeded = s.seeded + fresh.map { it.id })
+    }
     fun removeProfile(key: String) = update { s -> s.copy(profiles = s.profiles.filter { it.key != key }, muted = s.muted - key) }
     fun caught(key: String) = update { s -> s.copy(profiles = s.profiles.map { if (it.key == key && !it.caught) it.copy(caught = true) else it }) }
 

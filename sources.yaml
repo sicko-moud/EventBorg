@@ -1,6 +1,8 @@
 # Verified 2026-11-21. type: tribe | ical | jsonld | sitemap | html_llm | ticketmaster | none (social only)
 # audience: students tags every event from the source (the app ranks student events first).
 # every: minutes between fetches. local: events without a usable location are assumed to be in the municipality.
+# watch: pre-loaded into every phone's watch list once (users can remove it). priority: own heads-up channel, always
+# notified (not only as a favourite), pinned first in the story strip and the watch list.
 sources:
   - id: sonderborg-dk
     name: Sønderborg Kommune – Begivenheder
@@ -12,6 +14,7 @@ sources:
     ig: sonderborgkommune
     fb: https://www.facebook.com/sonderborgkommune
     names: [Sønderborg Kommune]
+    watch: true
 
   - id: koncertsalen-alsion
     name: Koncertsalen Alsion
@@ -47,13 +50,17 @@ sources:
     ig: sonderborghus
     fb: https://www.facebook.com/Sonderborghus
     names: [Sønderborghus]
+    watch: true
 
+  # Run by Sønderborghus; its concerts are listed on sonderborg.dk (already ingested), no feed of its own.
   - id: mejeriet
-    name: Mejeriet
+    name: Mejeriet Sønderborg
     type: none
     kind: venue
     town: Sønderborg
-    names: [Mejeriet]
+    ig: mejerietsonderborg
+    names: [Mejeriet, Mejeriet Sønderborg]
+    watch: true
 
   - id: biblioteket
     name: Biblioteket Sønderborg
@@ -276,8 +283,10 @@ sources:
     kind: venue
     town: Sønderborg
     audience: students
+    ig: cafeensdu
     fb: https://www.facebook.com/cafeensonderborg
-    names: [Caféen Sønderborg, Caféen SDU]
+    names: [Caféen Sønderborg, Caféen SDU, Cafeen]
+    watch: true
 
   - id: student-council-sonderborg
     name: Student Council SDU Sønderborg
@@ -285,8 +294,10 @@ sources:
     kind: organizer
     town: Sønderborg
     audience: students
+    ig: scsb_sdu
     fb: https://www.facebook.com/studentcouncilsonderborg
     names: [Student Council SDU Sønderborg, Student Council Sønderborg]
+    watch: true
 
   - id: sdu-sport-sonderborg
     name: SDU Sport Sønderborg
@@ -306,6 +317,7 @@ sources:
     audience: students
     ig: sonderborg.ung
     names: [Sønderborg Ung]
+    watch: true
 
   - id: sdu-music
     name: SDU Music
@@ -365,6 +377,98 @@ sources:
     audience: students
     ig: tengoku_sdu
     names: [Tengoku Club, Tengoku SDU]
+
+  # Instagram accounts added 2026-11-22, pre-loaded into the watch list. Web search and SDU's association list showed
+  # no website or Facebook Page for them unless listed.
+  - id: hk
+    name: HK
+    type: none
+    kind: organizer
+    town: Sønderborg
+    ig: hkctutten
+    names: [HK]
+    watch: true
+    priority: true
+
+  - id: intro-team-sonderborg
+    name: Intro Team Sønderborg
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: introteam_sonderborg
+    names: [Intro Team Sønderborg, Intro Team]
+    watch: true
+
+  - id: sdu-bikepacking
+    name: SDU Bikepacking
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: sdubikepacking
+    names: [SDU Bikepacking]
+    watch: true
+
+  - id: running-crew-sonderborg
+    name: Running Crew Sønderborg
+    type: none
+    kind: organizer
+    town: Sønderborg
+    ig: runningcrewsonderborg
+    names: [Running Crew Sønderborg]
+    watch: true
+
+  - id: sonderborg-ungdomsrad
+    name: Sønderborg Ungdomsråd
+    type: none
+    kind: organizer
+    town: Sønderborg
+    ig: sonderborg_ungdomsrad
+    names: [Sønderborg Ungdomsråd, Ungdomsrådet]
+    watch: true
+
+  - id: sdu-boardgames
+    name: SDU Boardgames
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: sduboardgames
+    names: [SDU Boardgames]
+    watch: true
+
+  # G.E.A.R.: its old domain gearsdu.com now serves an unrelated gambling page, so no url.
+  - id: gear-sdu
+    name: SDU Gear
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: gear_sdu
+    names: [SDU Gear, G.E.A.R., GEAR SDU]
+    watch: true
+
+  - id: cafe-alsion
+    name: Café Alsion
+    type: none
+    kind: business
+    town: Sønderborg
+    ig: cafe_alsion
+    names: [Café Alsion]
+    watch: true
+
+  # GOTO Sønderborg (foundation). Its event calendar links to sonderborg.dk, already ingested; no feed of its own.
+  - id: gotosonderborg
+    name: Go to Sønderborg
+    type: none
+    url: https://gotosonderborg.dk/
+    kind: organizer
+    town: Sønderborg
+    ig: gotosonderborg
+    fb: https://www.facebook.com/gotosonderborg
+    names: [Go to Sønderborg, GOTO Sønderborg]
+    watch: true
 
   - id: ticketmaster
     name: Ticketmaster

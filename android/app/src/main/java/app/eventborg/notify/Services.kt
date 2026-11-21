@@ -20,6 +20,8 @@ import app.eventborg.Graph
 import app.eventborg.data.Event
 import app.eventborg.data.JsonFmt
 import app.eventborg.data.NOTIFY_OFF
+import app.eventborg.data.N_EVENTS
+import app.eventborg.data.N_STORIES
 import app.eventborg.data.toEv
 import app.eventborg.graph
 import app.eventborg.watch.FB_PKG
@@ -49,7 +51,12 @@ class Push(private val g: Graph) {
                         val e = d["ev"]?.let { runCatching { JsonFmt.decodeFromString(Event.serializer(), it) }.getOrNull() } ?: return@withTimeoutOrNull
                         g.repo.insertPushed(e)
                         val ev = toEv(e)
-                        if (p.notify != NOTIFY_OFF && ev != null) g.notifier.event(ev, e.id in p.saved)
+                        val known = g.repo.data.value.srcById
+                        val ids = e.src.map { it.id }.filter { it in known }
+                        val muted = ids.isNotEmpty() && ids.none { p.on(N_EVENTS, it) }
+                        if (p.notify != NOTIFY_OFF && ev != null && !muted) {
+                            g.notifier.event(ev, e.id in p.saved, ids.any { known[it]?.pri == true })
+                        }
                     }
                     "group" -> {
                         if (p.notify == NOTIFY_OFF) return@withTimeoutOrNull
@@ -65,8 +72,11 @@ class Push(private val g: Graph) {
                         val ts = d["ts"]?.toLongOrNull() ?: System.currentTimeMillis()
                         g.stories.put(id, name, url, ts)
                         g.stories.relayed(id, ts)
-                        if (p.stories == NOTIFY_OFF || id in g.watch.state.value.muted || g.stories.alertedRecently(id)) return@withTimeoutOrNull
-                        if (g.notifier.story(id, name, url)) g.stories.markAlerted(id)
+                        if (p.stories == NOTIFY_OFF || !p.on(N_STORIES, id) || id in g.watch.state.value.muted || g.stories.alertedRecently(id)) {
+                            return@withTimeoutOrNull
+                        }
+                        val pri = g.repo.data.value.srcById[id]?.pri == true
+                        if (g.notifier.story(id, name, url, pri)) g.stories.markAlerted(id)
                     }
                 }
             }

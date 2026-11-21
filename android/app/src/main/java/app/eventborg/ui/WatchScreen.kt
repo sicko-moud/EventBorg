@@ -75,7 +75,7 @@ private fun listedFor(l: ProfileLink, sources: List<Source>): Source? = sources.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchScreen(link: String?, openListener: () -> Unit, openPosts: () -> Unit) {
+fun WatchScreen(link: String?, openListener: () -> Unit, openPosts: () -> Unit, openSource: (String) -> Unit) {
     val ctx = LocalContext.current
     val g = ctx.graph
     val watch by g.watch.state.collectAsStateWithLifecycle()
@@ -126,7 +126,7 @@ fun WatchScreen(link: String?, openListener: () -> Unit, openPosts: () -> Unit) 
             }
             item("h_profiles") { Heading2(stringResource(R.string.w_profiles)) }
             if (watch.profiles.isEmpty()) item("p_empty") { Hint(stringResource(R.string.w_profiles_empty)) }
-            items(watch.profiles, key = { "p_" + it.key }) { p ->
+            items(watch.profiles.sortedByDescending { it.src != null && data.srcById[it.src]?.pri == true }, key = { "p_" + it.key }) { p ->
                 WatchRow(
                     title = p.name,
                     subtitle = listOfNotNull(p.handle?.takeIf { p.net == IG }?.let { "@$it" }, if (p.net == IG) "Instagram" else "Facebook").joinToString(" · "),
@@ -137,6 +137,7 @@ fun WatchScreen(link: String?, openListener: () -> Unit, openPosts: () -> Unit) 
                     onOpen = { ctx.openApp(p.url) },
                     onMute = { g.watch.setMuted(p.key, it) },
                     onRemove = { g.watch.removeProfile(p.key) },
+                    onSettings = p.src?.takeIf { it in data.srcById }?.let { id -> { openSource(id) } },
                 )
             }
             item("h_groups") { Heading2(stringResource(R.string.w_groups)) }
@@ -260,6 +261,7 @@ private fun WatchRow(
     onOpen: () -> Unit,
     onMute: (Boolean) -> Unit,
     onRemove: () -> Unit,
+    onSettings: (() -> Unit)? = null,
 ) {
     var menu by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp, top = 6.dp, bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -286,6 +288,9 @@ private fun WatchRow(
                     text = { Text(stringResource(if (muted) R.string.unmute else R.string.mute)) },
                     onClick = { onMute(!muted); menu = false },
                 )
+                if (onSettings != null) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.w_notifications)) }, onClick = { onSettings(); menu = false })
+                }
                 DropdownMenuItem(text = { Text(stringResource(R.string.remove)) }, onClick = { onRemove(); menu = false })
             }
         }

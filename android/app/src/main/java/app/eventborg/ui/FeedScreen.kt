@@ -106,11 +106,12 @@ fun FeedScreen(open: (String) -> Unit) {
     val askNotify = notifyAskNeeded(prefs)
     val stories by g.stories.items.collectAsStateWithLifecycle()
     val watch by g.watch.state.collectAsStateWithLifecycle()
-    val strip = remember(stories, watch, prefs.favSrcs, now) {
+    val strip = remember(stories, watch, prefs.favSrcs, data.sources, now) {
         val cut = now.toInstant().toEpochMilli() - 24 * 3600_000L
         val mine = prefs.favSrcs + watch.profiles.map { it.key }
+        val pri = data.sources.filter { it.pri }.map { it.id }.toSet()
         stories.filter { it.ts > cut && it.key !in watch.muted }
-            .sortedWith(compareByDescending<StoryItem> { it.key in mine }.thenByDescending { it.ts })
+            .sortedWith(compareByDescending<StoryItem> { it.key in pri }.thenByDescending { it.key in mine }.thenByDescending { it.ts })
     }
 
     Scaffold(

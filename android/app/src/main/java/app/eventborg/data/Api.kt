@@ -90,6 +90,22 @@ class Api(private val http: () -> OkHttpClient) {
         runCatching { post("/story-seen", body).use { it.isSuccessful } }.getOrDefault(false)
     }
 
+    // A listed account's new post seen in a notification: true = the server found an event (it goes through the inbox
+    // rules and arrives as a normal push), false = not an event, null = no answer.
+    suspend fun postSeen(sourceId: String, ts: Long, text: String, img: String?): Boolean? = withContext(Dispatchers.IO) {
+        val body = buildJsonObject {
+            put("sourceId", sourceId)
+            put("ts", ts)
+            put("text", text.take(1000))
+            if (img != null) put("img", img)
+        }
+        runCatching {
+            post("/post-seen", body, slow).use { r ->
+                if (!r.isSuccessful) null else JsonFmt.decodeFromString(PostVerdict.serializer(), r.body.string()).takeIf { it.ok }?.is_event
+            }
+        }.getOrNull()
+    }
+
     suspend fun channels(): Channels? = withContext(Dispatchers.IO) {
         runCatching {
             http().newCall(Request.Builder().url(BuildConfig.WORKER_URL + "/channels").build()).execute().use {

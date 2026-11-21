@@ -96,6 +96,7 @@ fun SettingsScreen(openListener: () -> Unit, openAddEvent: () -> Unit) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
             }
             SwitchRow(stringResource(R.string.set_hide), prefs.hideOriginal, stringResource(R.string.set_hide_hint)) { g.prefs.setHideOriginal(it) }
+            SwitchRow(stringResource(R.string.set_check_posts), prefs.checkPosts, stringResource(R.string.set_check_posts_hint)) { g.prefs.setCheckPosts(it) }
             SwitchRow(stringResource(R.string.set_share), prefs.shareStories, stringResource(R.string.set_share_hint)) { g.prefs.setShareStories(it) }
 
             Heading(stringResource(R.string.ae_title))

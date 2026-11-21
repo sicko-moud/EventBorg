@@ -41,7 +41,7 @@
     <string name="w_bad_link">That isn\'t an Instagram/Facebook profile, Page or group link.</string>
     <string name="w_profiles">Profiles</string>
     <string name="w_profiles_empty">Watch a profile to get an alert when it posts a story. Add one from a link or the suggestions below.</string>
-    <string name="w_tip_ig">Open the profile, tap the bell and turn on Story notifications.</string>
+    <string name="w_tip_ig">Open the profile, tap the bell and turn on Posts and Story notifications.</string>
     <string name="w_tip_fb">Open the Page, tap ⋯ → Follow settings and turn on story notifications.</string>
     <string name="w_caught">Story notifications work</string>
     <string name="w_open_profile">Open profile</string>
@@ -79,7 +79,7 @@
     <string name="l_what_h">What EventBorg reads</string>
     <string name="l_reads">Only notifications from the Instagram and Facebook apps. Their title and text are checked on your phone, in memory, against your watch list and the listed venues. Notifications from every other app are ignored right away.</string>
     <string name="l_never_h">What it never does</string>
-    <string name="l_never">It never stores or sends the content of a notification, and it never downloads, reads or analyses stories. Profiles and groups you watch stay on this phone.</string>
+    <string name="l_never">It never stores the content of a notification, never sends story or group notifications anywhere, and never downloads, reads or analyses stories. Profiles and groups you watch stay on this phone.</string>
     <string name="l_groups_h">Group posts</string>
     <string name="l_groups">When a post in a group you watch looks like an event (a date, a time, a price, words like concert or tickets), its text and picture are kept on this phone for 7 days. They are sent to EventBorg only if you tap \"Add as event\".</string>
     <string name="l_hide_h">Fewer double notifications</string>
@@ -94,7 +94,7 @@
     <string name="l_setup">Set it up</string>
     <string name="l_step_silent">Make Instagram\'s story notifications silent, so only EventBorg\'s alert makes a sound: Instagram\'s notification settings → Stories → Silent. Don\'t switch them off: blocked notifications never reach EventBorg.</string>
     <string name="l_open_ig_settings">Open Instagram notification settings</string>
-    <string name="l_step_bell">For each profile you watch, open it in Instagram, tap the bell and turn on Story notifications. A ✓ appears on the Watching tab once the first one arrives.</string>
+    <string name="l_step_bell">For each profile you watch, open it in Instagram, tap the bell and turn on notifications for Posts and Stories. A ✓ appears on the Watching tab once the first story arrives.</string>
     <string name="l_step_group">For each group you watch, open it in Facebook → ⋯ → Notifications → All posts.</string>
     <string name="l_step_account">Tip: use a separate Instagram/Facebook account just for EventBorg follows, so your own feed stays as it is.</string>
     <string name="l_turn_off">Turn off detection</string>
@@ -103,7 +103,7 @@
     <string name="set_detect_h">Stories and groups</string>
     <string name="set_detect">Detect stories and group posts from my Instagram/Facebook notifications</string>
     <string name="set_hide">Hide original notification</string>
-    <string name="set_hide_hint">When EventBorg shows its own alert for a story or group post.</string>
+    <string name="set_hide_hint">When EventBorg shows its own alert for a story, a post or a group post.</string>
     <string name="set_share">Share story alerts from local venues</string>
     <string name="set_share_hint">Sends only the venue and the time.</string>
     <string name="set_blocked">Notifications are turned off for EventBorg. Open settings</string>
@@ -151,4 +151,21 @@
     <string name="d_clear">Clear</string>
     <string name="d_sent">Thanks!</string>
     <string name="d_sent_body">Your event was sent. We check it and add it soon, often within minutes.</string>
+    <string name="ch_priority">Priority sources</string>
+    <string name="ch_priority_desc">Events, stories and posts from priority sources such as HK, with sound and a pop-up.</string>
+    <string name="ch_posts">New posts</string>
+    <string name="ch_posts_desc">When a profile you watch or a local venue posts something new that isn’t an event.</string>
+    <string name="post_title">New post from %1$s</string>
+    <string name="post_text">Tap to open the post.</string>
+    <string name="src_notify">Notifications from this source</string>
+    <string name="src_n_events">New events</string>
+    <string name="src_n_stories">New stories</string>
+    <string name="src_n_posts">New posts</string>
+    <string name="src_n_hint">Your choices under Settings still apply; these switches turn single sources off.</string>
+    <string name="src_priority">Priority source: always notified, with sound and a pop-up.</string>
+    <string name="w_notifications">Notifications</string>
+    <string name="set_check_posts">Check new posts from local venues for events</string>
+    <string name="set_check_posts_hint">Sends a listed venue’s post preview (text and picture) to EventBorg’s server. Posts from profiles you added yourself never leave your phone.</string>
+    <string name="l_posts_h">New posts</string>
+    <string name="l_posts">New posts from watched profiles and listed venues are caught too. For listed venues and organisations (public accounts only), the post notification’s preview text and picture go to EventBorg’s server, which asks Google Gemini whether it is an event and, if so, adds it for everyone. Otherwise you get a “New post from …” alert. You can turn this off under Settings. Posts from profiles you added yourself never leave your phone.</string>
 </resources>

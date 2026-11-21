@@ -36,7 +36,7 @@ ARCHITECTURE (free tiers only, nothing to host)
 4. LLM: Gemini API free tier, multimodal (text, images), model name from an env var. Use it only for unstructured content, summaries, and categories that rules can't map. Batch 10–20 text items per call, require JSON-schema output, and cache by content hash.
 5. Cloudflare Worker (free): the only always-on piece. Keep it pass-through so it stays under the free CPU limit.
    - App endpoints: POST /extract (text or image → LLM → draft event), POST /submit (confirmed draft). The app shrinks images to ≤1280 px JPEG before upload.
-   - Story endpoints: POST /story-seen, GET /stories (see STORY ALERTS).
+   - Story endpoints: POST /story-seen, GET /stories (see STORY ALERTS). Post endpoint: POST /post-seen (see POST ALERTS).
    - Social endpoints: GET+POST /meta/webhook for Instagram (only with IG_PUBLIC_INBOX=true) and WhatsApp (only once configured); answer the verify-token challenge, check X-Hub-Signature-256. POST /meta/deletion (Meta's data-deletion callback). GET /channels returns the live ways in {ig, wa}.
    - Static pages: /privacy (names the processors: Meta, Google, Cloudflare, GitHub), /data-deletion (Meta requirement), /organizers (how to get listed). They mention only the live channels.
    - Inbox items become KV records {channel, type, text, media URLs, sender hash, ts}. Never store media bytes. Then send repository_dispatch, at most once per 60 s. Rate-limit per sender and per IP.
@@ -44,6 +44,7 @@ ARCHITECTURE (free tiers only, nothing to host)
 WEB SOURCES (sources.yaml, one adapter per type)
 - Rules: respect robots.txt and ToS, max 1 request/s per host, User-Agent includes a contact email.
 - Each source may also have: ig (Instagram handle), fb (Facebook Page URL), names[] (display names, used for story matching), and kind: venue | organizer | business. Never list personal accounts.
+- watch: true pre-loads the source into every phone's watch list once (first launch after it appears; a removed one stays removed). priority: true (currently HK, @hkctutten) gives it its own heads-up notification channel with sound, notifies even when it isn't a favourite (unless the global setting is Off), never groups its event pushes, and pins it first in the story strip and the watch list. sources.json carries these as pri and dw.
 - Types:
   - tribe: WordPress "The Events Calendar" REST API, /wp-json/tribe/events/v1/events
   - ical
@@ -98,10 +99,19 @@ Relay (in the Worker):
   - Data: {sourceId, name, url, ts}, where url is https://www.instagram.com/stories/<handle>/ or the Facebook Page URL.
 - Keep alerts from the last 24 h in KV; GET /stories returns them with Cache-Control: max-age=60.
 
+POST ALERTS (new posts from listed accounts and watched profiles; same opt-in listener)
+- The listener also catches Instagram/Facebook "new post" notifications ("<handle> shared a post", "delte et opslag", "hat einen Beitrag geteilt"…) from watched profiles and listed sources. Activity on your own posts and posts inside groups don't count; a story match wins.
+- Listed sources (public organization accounts) with "Check new posts from local venues for events" on (default; disclosed in the listener disclosure and on /privacy): the phone POSTs the notification text and its picture (≤1024 px JPEG) to /post-seen. The Worker accepts only listed eligible sources, rate-limits per IP, runs one Gemini extraction per source per 20 min (later reports get the cached verdict), never stores the picture, and queues an event as an inbox item (channel post). The inbox job treats it like an app draft: not trusted (any client could send one), so it publishes on confidence ≥0.92 or corroboration, otherwise an Issue.
+- Event → no local alert (the normal event push follows once published). Not an event, or no answer → a local "New post from <name>" alert on the "New posts" channel (priority channel for priority sources), only for watched, favourite or priority sources. Tap fires the original notification's intent (opens the post), else the profile; action Mute source. Hide original only when our alert shows.
+- Profiles the user added themselves: local "New post from" alert only; nothing leaves the phone.
+- Business Discovery polling (when the Meta token exists) still polls every listed ig handle, so posts are caught for everyone even without phones; non-professional accounts fail with code 100/110 and are retried weekly.
+- Per-source switches (source page, and "Notifications" in a watched profile's menu): New events / New stories / New posts, all on by default. Off removes that source's s_/st_ topic and drops its pushes and local alerts.
+
 WATCH LIST AND GROUP POSTS (on the phone only; uses the same opt-in notification listener)
 Watch a profile:
 - Paste an Instagram or Facebook profile/Page link, or share a profile from the Instagram/Facebook app into EventBorg. The app extracts the handle (instagram.com/<handle>, facebook.com/<page>, profile.php?id=…) plus a display name used for matching (prefilled, editable; Facebook share links carry no name, so ask for it).
-- Suggestions: the listed sources in sources.json that have ig/fb, added with one tap.
+- Suggestions: the listed sources in sources.json that have ig/fb, added with one tap. Sources marked watch are pre-loaded (see WEB SOURCES).
+- Pasted or shared profile links are saved without their query string (?igsh=, ?mibextid=…); profile.php keeps only id.
 - Each entry: "Open profile" button, the tip "tap the bell and turn on Story notifications", a ✓ once its first story notification has been caught, Remove, Mute.
 - Watched profiles behave like favourite sources for story alerts: an EventBorg notification plus a story-strip circle. Watching a listed source also subscribes st_<sourceId> (unless Story alerts is Off).
 - Profiles the user adds stay on the phone and are never sent to the server. Only listed sources are relayed to other users.
@@ -151,6 +161,7 @@ PUSH RULES
 - If one run finds more than 3 new events in a category, send one grouped push for that category instead.
 - Story alerts use the topics st_all and st_<sourceId> and a separate Android notification channel, "Story alerts", which users can silence in system settings. A story alert is never merged with event pushes.
 - Group-post alerts are local only, on their own channel "Group posts".
+- Favourite, watched and priority sources get s_<id> and st_<id> topics in "Favourites only" mode, minus the per-source switches. Events from priority sources are never grouped and show on the "Priority sources" channel (high importance, sound).
 
 ANDROID APP
 Stack:
@@ -179,6 +190,7 @@ Screens:
 - Settings:
   - Event notifications: All / Favourites only / Off (mapped to topic subscriptions).
   - Story alerts: Off / Favourite sources / All local venues (mapped to st_ topics).
+  - "Check new posts from local venues for events" (on by default; see POST ALERTS).
   - "Detect stories and group posts from my Instagram/Facebook notifications" (opens the disclosure screen and the system access settings).
   - "Hide original notification" (on by default).
   - "Share story alerts from local venues", with the explanation "sends only the venue and the time".
@@ -197,7 +209,7 @@ M1 Web ingest: verified sources.yaml (including ig/fb handles), adapters, pipeli
 M2 Event push sender following the push rules; Worker app endpoints and static pages.
 M3 Social inbox and story relay: webhooks (Instagram behind IG_PUBLIC_INBOX, WhatsApp once configured), KV, repository_dispatch, inbox job, auto-publish rules, Issue moderation, replies, Business Discovery polling, /story-seen, /stories and /channels, FCM from the Worker. Verify with the Meta webhook test tool once the keys exist.
 M4 App core: feed (without the story strip), filters, search, detail, saved, sources, settings, cache.
-M5 App push handling (Event, Story alerts and Group posts channels), story strip, notification listener (primary story detection) with disclosure/onboarding, watch list (profiles and groups), group-post alerts, "Hide original notification", share target (including profile/group links), "Add your event" screen.
+M5 App push handling (Priority sources, New events, Story alerts, New posts and Group posts channels), post alerts and per-source notification switches, watch-list pre-load and priority sources, story strip, notification listener (primary story detection) with disclosure/onboarding, watch list (profiles and groups), group-post alerts, "Hide original notification", share target (including profile/group links), "Add your event" screen.
 M6 Size and performance pass; README with exact setup steps for Firebase, GitHub secrets and Pages, Cloudflare, the Gemini key, the Meta app (Instagram/WhatsApp, publishing, privacy and data-deletion URLs, and the App Review steps needed before IG_PUBLIC_INBOX=true), plus a keep-alive so GitHub doesn't disable the schedule after 60 days without repo activity.
 M7 Improvements: implement the best items from IDEAS.md within HARD LIMITS. List any that need my approval (see WORKING RULES) and stop before doing them.
 

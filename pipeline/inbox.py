@@ -250,7 +250,7 @@ def _posted(day: date) -> str:
     return f"{day:%A} {day.isoformat()}"
 
 
-def candidate_from_item(it: dict) -> dict:
+def candidate_from_item(it: dict, sources: dict[str, dict] | None = None) -> dict:
     ch = it.get("channel") or "app"
     c = {"key": it["key"], "ch": ch, "text": (it.get("text") or "")[:4000], "media": it.get("media") or [],
          "day": _local_day(it.get("ts") or 0), "src": {"id": "inbox", "kind": ch}, "sender": it.get("sender"),
@@ -259,6 +259,17 @@ def candidate_from_item(it: dict) -> dict:
         d = it.get("draft") or {}
         c["res"] = {"is_event": True, "confidence": app_confidence(it), "reason": "app submission", **d}
         c["src"]["url"] = d.get("url")
+    elif ch == "post":
+        # A listed account's new post, caught from a phone's notification and extracted by the Worker. Any client can
+        # claim to have seen one, so it is not trusted: it needs high confidence or corroboration like an app draft.
+        src = (sources or {}).get(it.get("source") or "")
+        d = it.get("draft") or {}
+        conf = max(0.0, min(1.0, float(it.get("conf") or 0)))
+        c["res"] = {"is_event": bool(src), "confidence": conf, "reason": "post notification", **d}
+        if src:
+            url = f"https://www.instagram.com/{src['ig']}/" if src.get("ig") else src.get("fb")
+            c["src"] = {"id": src["id"], "kind": "ig_post" if src.get("ig") else "fb", "url": url}
+            c["local"] = bool(src.get("local"))
     return c
 
 
@@ -477,6 +488,7 @@ def step(state, llm: LLM, web_events: list[dict], sources: list[dict], aliases: 
             log.append(f"worker: {type(ex).__name__}")
         stats["items"] = len(items)
         batch_mh = set()
+        by_id = {s["id"]: s for s in sources}
         for it in items:
             mh = f"mh:{it['mh']}" if it.get("mh") else None
             if it["key"] in box["done"] or (mh and (mh in box["done"] or mh in batch_mh)):
@@ -496,7 +508,7 @@ def step(state, llm: LLM, web_events: list[dict], sources: list[dict], aliases: 
                 acks.append({"key": it["key"]})
             else:
                 batch_mh.add(mh)
-                cands.append(candidate_from_item(it))
+                cands.append(candidate_from_item(it, by_id))
         try:
             cands += poll_instagram(w, sources, box, now, log)
         except requests.RequestException as ex:

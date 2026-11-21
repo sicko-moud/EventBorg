@@ -4,6 +4,7 @@ import { job } from "./job.js";
 import { renderPage } from "./pages.js";
 import { metaDeletion, metaVerify, metaWebhook } from "./social.js";
 import { listStories, storySeen } from "./stories.js";
+import { postSeen } from "./posts.js";
 import { activeChannels, fail, json } from "./util.js";
 
 export default {
@@ -16,6 +17,7 @@ export default {
       if (m === "POST" && path === "/submit") return await submit(req, env, ctx);
       if (m === "POST" && path === "/suggest") return await suggestSource(req, env, ctx);
       if (m === "POST" && path === "/story-seen") return await storySeen(req, env, ctx);
+      if (m === "POST" && path === "/post-seen") return await postSeen(req, env, ctx);
       if (m === "GET" && path === "/stories") return await listStories(env);
       if (m === "GET" && path === "/channels") return json(activeChannels(env), 200, { "cache-control": "public, max-age=3600" });
       if (m === "GET" && path === "/meta/webhook") return metaVerify(url, env);

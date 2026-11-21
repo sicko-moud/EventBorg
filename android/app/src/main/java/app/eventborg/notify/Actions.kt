@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-// The original Facebook tap intents of group-post alerts, kept in memory only while the process lives.
+// The original Instagram/Facebook tap intents of post and group-post alerts, kept in memory only while the process lives.
 object Held {
     private val map = object : LinkedHashMap<String, PendingIntent>() {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, PendingIntent>?) = size > 30
@@ -28,9 +28,9 @@ object Held {
     @Synchronized fun get(id: String): PendingIntent? = map[id]
 }
 
-// Fires the held Facebook intent (opens that exact post); falls back to the group page.
-fun openGroupPost(a: Activity, id: String) {
-    val pi = Held.get(id)
+// Fires the held Instagram/Facebook intent (opens that exact post); falls back to the given page.
+fun openHeld(a: Activity, id: String?, fallback: String?) {
+    val pi = id?.let(Held::get)
     if (pi != null) {
         val opts: Bundle? = if (Build.VERSION.SDK_INT >= 34) {
             @Suppress("DEPRECATION")
@@ -40,8 +40,10 @@ fun openGroupPost(a: Activity, id: String) {
         }
         if (runCatching { pi.send(a, 0, null, null, null, null, opts) }.isSuccess) return
     }
-    a.graph.watch.state.value.posts.firstOrNull { it.id == id }?.let { a.openApp(it.url) }
+    fallback?.let { a.openApp(it) }
 }
+
+fun openGroupPost(a: Activity, id: String) = openHeld(a, id, a.graph.watch.state.value.posts.firstOrNull { it.id == id }?.url)
 
 class Actions : BroadcastReceiver() {
     override fun onReceive(ctx: Context, intent: Intent) {
@@ -78,6 +80,7 @@ class ActionActivity : Activity() {
                 intent.getStringExtra(X_URL)?.let { openApp(it) }
             }
             ACT_POST -> intent.getStringExtra(X_ID)?.let { openGroupPost(this, it) }
+            ACT_OPEN -> openHeld(this, intent.getStringExtra(X_ID), intent.getStringExtra(X_URL))
         }
         finish()
     }

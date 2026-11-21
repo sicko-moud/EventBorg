@@ -47,11 +47,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.eventborg.R
+import app.eventborg.data.N_EVENTS
+import app.eventborg.data.N_POSTS
+import app.eventborg.data.N_STORIES
 import app.eventborg.data.Problem
 import app.eventborg.data.Sent
 import app.eventborg.data.Source
 import app.eventborg.data.ZONE
 import app.eventborg.graph
+import app.eventborg.watch.storyEligible
 import kotlinx.coroutines.launch
 import java.time.OffsetDateTime
 
@@ -237,6 +241,16 @@ fun SourcePage(id: String, back: () -> Unit, open: (String) -> Unit) {
                         s.ig?.let { h -> AssistChip(onClick = { ctx.openApp(instagramUrl(h)) }, label = { Text("Instagram") }) }
                         s.fb?.let { u -> AssistChip(onClick = { ctx.openApp(u) }, label = { Text("Facebook") }) }
                     }
+                }
+                SectionHeader(stringResource(R.string.src_notify))
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    if (s.pri) Text(stringResource(R.string.src_priority), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    SwitchRow(stringResource(R.string.src_n_events), prefs.on(N_EVENTS, id)) { g.prefs.setSourceOn(N_EVENTS, id, it) }
+                    if (storyEligible(s)) {
+                        SwitchRow(stringResource(R.string.src_n_stories), prefs.on(N_STORIES, id)) { g.prefs.setSourceOn(N_STORIES, id, it) }
+                        SwitchRow(stringResource(R.string.src_n_posts), prefs.on(N_POSTS, id)) { g.prefs.setSourceOn(N_POSTS, id, it) }
+                    }
+                    Text(stringResource(R.string.src_n_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 SectionHeader(ctx.resources.getQuantityString(R.plurals.upcoming, events.size, events.size))
                 if (events.isEmpty()) Hint(stringResource(R.string.source_no_events))

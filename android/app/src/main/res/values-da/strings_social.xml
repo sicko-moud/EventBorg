@@ -41,7 +41,7 @@
     <string name="w_bad_link">Det er ikke et link til en Instagram-/Facebook-profil, side eller gruppe.</string>
     <string name="w_profiles">Profiler</string>
     <string name="w_profiles_empty">Følg en profil for at få besked, når den lægger en story op. Tilføj en fra et link eller forslagene nedenfor.</string>
-    <string name="w_tip_ig">Åbn profilen, tryk på klokken og slå Story-notifikationer til.</string>
+    <string name="w_tip_ig">Åbn profilen, tryk på klokken og slå notifikationer for Opslag og Stories til.</string>
     <string name="w_tip_fb">Åbn siden, tryk ⋯ → Indstillinger for følg, og slå story-notifikationer til.</string>
     <string name="w_caught">Story-notifikationer virker</string>
     <string name="w_open_profile">Åbn profil</string>
@@ -79,7 +79,7 @@
     <string name="l_what_h">Hvad EventBorg læser</string>
     <string name="l_reads">Kun notifikationer fra Instagram- og Facebook-appen. Titel og tekst tjekkes på din telefon, i hukommelsen, mod din liste og stederne i EventBorg. Notifikationer fra alle andre apps ignoreres med det samme.</string>
     <string name="l_never_h">Hvad den aldrig gør</string>
-    <string name="l_never">Den gemmer eller sender aldrig indholdet af en notifikation, og den henter, læser eller analyserer aldrig stories. Profiler og grupper, du følger, bliver på denne telefon.</string>
+    <string name="l_never">Den gemmer aldrig indholdet af en notifikation, sender aldrig story- eller gruppe-notifikationer nogen steder hen, og den henter, læser eller analyserer aldrig stories. Profiler og grupper, du følger, bliver på denne telefon.</string>
     <string name="l_groups_h">Gruppeopslag</string>
     <string name="l_groups">Når et opslag i en gruppe, du følger, ligner et arrangement (en dato, et klokkeslæt, en pris, ord som koncert eller billetter), gemmes teksten og billedet på denne telefon i 7 dage. De sendes kun til EventBorg, hvis du trykker \"Tilføj som arrangement\".</string>
     <string name="l_hide_h">Færre dobbelte notifikationer</string>
@@ -94,7 +94,7 @@
     <string name="l_setup">Sådan sætter du det op</string>
     <string name="l_step_silent">Gør Instagrams story-notifikationer lydløse, så kun EventBorgs besked laver lyd: Instagrams notifikationsindstillinger → Stories → Lydløs. Slå dem ikke fra: blokerede notifikationer når aldrig frem til EventBorg.</string>
     <string name="l_open_ig_settings">Åbn Instagrams notifikationsindstillinger</string>
-    <string name="l_step_bell">For hver profil, du følger: åbn den i Instagram, tryk på klokken og slå Story-notifikationer til. Der kommer et ✓ under Følger, når den første er kommet.</string>
+    <string name="l_step_bell">For hver profil, du følger: åbn den i Instagram, tryk på klokken og slå notifikationer for Opslag og Stories til. Der kommer et ✓ under Følger, når den første story er kommet.</string>
     <string name="l_step_group">For hver gruppe, du følger: åbn den i Facebook → ⋯ → Notifikationer → Alle opslag.</string>
     <string name="l_step_account">Tip: brug en separat Instagram-/Facebook-konto kun til EventBorg, så dit eget feed forbliver som det er.</string>
     <string name="l_turn_off">Slå genkendelse fra</string>
@@ -103,7 +103,7 @@
     <string name="set_detect_h">Stories og grupper</string>
     <string name="set_detect">Genkend stories og gruppeopslag fra mine Instagram-/Facebook-notifikationer</string>
     <string name="set_hide">Skjul den oprindelige notifikation</string>
-    <string name="set_hide_hint">Når EventBorg viser sin egen besked om en story eller et gruppeopslag.</string>
+    <string name="set_hide_hint">Når EventBorg viser sin egen besked for en story, et opslag eller et gruppeopslag.</string>
     <string name="set_share">Del story-beskeder fra lokale steder</string>
     <string name="set_share_hint">Sender kun stedet og tidspunktet.</string>
     <string name="set_blocked">Notifikationer er slået fra for EventBorg. Åbn indstillinger</string>
@@ -151,4 +151,21 @@
     <string name="d_clear">Ryd</string>
     <string name="d_sent">Tak!</string>
     <string name="d_sent_body">Dit arrangement er sendt. Vi tjekker det og tilføjer det snart, ofte inden for få minutter.</string>
+    <string name="ch_priority">Prioriterede kilder</string>
+    <string name="ch_priority_desc">Arrangementer, stories og opslag fra prioriterede kilder som HK, med lyd og pop op.</string>
+    <string name="ch_posts">Nye opslag</string>
+    <string name="ch_posts_desc">Når en profil, du følger, eller et lokalt sted lægger noget nyt op, som ikke er et arrangement.</string>
+    <string name="post_title">Nyt opslag fra %1$s</string>
+    <string name="post_text">Tryk for at åbne opslaget.</string>
+    <string name="src_notify">Notifikationer fra denne kilde</string>
+    <string name="src_n_events">Nye arrangementer</string>
+    <string name="src_n_stories">Nye stories</string>
+    <string name="src_n_posts">Nye opslag</string>
+    <string name="src_n_hint">Dine valg under Indstillinger gælder stadig; her kan du slå enkelte kilder fra.</string>
+    <string name="src_priority">Prioriteret kilde: du får altid besked, med lyd og pop op.</string>
+    <string name="w_notifications">Notifikationer</string>
+    <string name="set_check_posts">Tjek nye opslag fra lokale steder for arrangementer</string>
+    <string name="set_check_posts_hint">Sender et steds forhåndsvisning af opslaget (tekst og billede) til EventBorgs server. Opslag fra profiler, du selv har tilføjet, forlader aldrig telefonen.</string>
+    <string name="l_posts_h">Nye opslag</string>
+    <string name="l_posts">Nye opslag fra profiler, du følger, og fra steder i appen bliver også fanget. For steder og arrangører i appen (kun offentlige konti) sendes opslagsnotifikationens forhåndstekst og billede til EventBorgs server, som spørger Google Gemini, om det er et arrangement, og i så fald tilføjer det for alle. Ellers får du en “Nyt opslag fra …”-besked. Du kan slå det fra under Indstillinger. Opslag fra profiler, du selv har tilføjet, forlader aldrig telefonen.</string>
 </resources>

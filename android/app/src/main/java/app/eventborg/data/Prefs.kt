@@ -25,6 +25,11 @@ const val NOTIFY_ALL = "all"
 const val NOTIFY_FAV = "fav"
 const val NOTIFY_OFF = "off"
 
+// Per-source notification types; a source's switch is on unless "<type>:<id>" is in srcOff.
+const val N_EVENTS = "e"
+const val N_STORIES = "s"
+const val N_POSTS = "p"
+
 data class UserPrefs(
     val loaded: Boolean = false,
     val saved: Set<String> = emptySet(),
@@ -38,8 +43,12 @@ data class UserPrefs(
     val hideOriginal: Boolean = true,
     val shareStories: Boolean = false,
     val notifAsked: Boolean = false,
+    val srcOff: Set<String> = emptySet(),
+    val checkPosts: Boolean = true,
 ) {
     val faves get() = Faves(saved, favCats, favSrcs)
+
+    fun on(type: String, key: String) = "$type:$key" !in srcOff
 }
 
 private fun Set<String>.toggle(x: String) = if (x in this) this - x else this + x
@@ -63,6 +72,8 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
                 hideOriginal = p[HIDE] ?: true,
                 shareStories = p[SHARE] ?: false,
                 notifAsked = p[ASKED] ?: false,
+                srcOff = p[SRC_OFF].orEmpty(),
+                checkPosts = p[CHECK_POSTS] ?: true,
             )
         }
         .stateIn(scope, SharingStarted.Eagerly, UserPrefs())
@@ -82,6 +93,10 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
     fun setHideOriginal(v: Boolean) = edit { it[HIDE] = v }
     fun setShareStories(v: Boolean) = edit { it[SHARE] = v }
     fun setNotifAsked() = edit { it[ASKED] = true }
+    fun setSourceOn(type: String, key: String, on: Boolean) = edit {
+        it[SRC_OFF] = if (on) it[SRC_OFF].orEmpty() - "$type:$key" else it[SRC_OFF].orEmpty() + "$type:$key"
+    }
+    fun setCheckPosts(v: Boolean) = edit { it[CHECK_POSTS] = v }
     suspend fun save(id: String) {
         ds.edit { it[SAVED] = it[SAVED].orEmpty() + id }
     }
@@ -104,5 +119,7 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
         val HIDE = booleanPreferencesKey("hide_original")
         val SHARE = booleanPreferencesKey("share_stories")
         val ASKED = booleanPreferencesKey("notif_asked")
+        val SRC_OFF = stringSetPreferencesKey("src_off")
+        val CHECK_POSTS = booleanPreferencesKey("check_posts")
     }
 }

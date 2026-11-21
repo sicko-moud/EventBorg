@@ -27,6 +27,8 @@ import app.eventborg.watch.GroupPost
 const val CH_EVENTS = "events"
 const val CH_STORIES = "stories"
 const val CH_GROUPS = "groups"
+const val CH_POSTS = "posts"
+const val CH_PRIORITY = "priority"
 
 const val ACT_EVENT = "app.eventborg.EVENT"
 const val ACT_CAT = "app.eventborg.CATEGORY"
@@ -34,6 +36,7 @@ const val ACT_DRAFT_POST = "app.eventborg.DRAFT_POST"
 const val ACT_POSTS = "app.eventborg.GROUP_POSTS"
 const val ACT_STORY = "app.eventborg.STORY"
 const val ACT_POST = "app.eventborg.OPEN_POST"
+const val ACT_OPEN = "app.eventborg.OPEN_HELD"
 const val ACT_SAVE = "app.eventborg.SAVE"
 const val ACT_MUTE = "app.eventborg.MUTE"
 const val X_ID = "id"
@@ -51,12 +54,14 @@ class Notifier(private val app: Context) {
 
     fun channels() {
         val c = res()
-        fun ch(id: String, name: Int, desc: Int) = NotificationChannelCompat.Builder(id, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-            .setName(c.getString(name)).setDescription(c.getString(desc)).build()
+        fun ch(id: String, name: Int, desc: Int, importance: Int = NotificationManagerCompat.IMPORTANCE_DEFAULT) =
+            NotificationChannelCompat.Builder(id, importance).setName(c.getString(name)).setDescription(c.getString(desc)).build()
         nm.createNotificationChannelsCompat(
             listOf(
+                ch(CH_PRIORITY, R.string.ch_priority, R.string.ch_priority_desc, NotificationManagerCompat.IMPORTANCE_HIGH),
                 ch(CH_EVENTS, R.string.ch_events, R.string.ch_events_desc),
                 ch(CH_STORIES, R.string.ch_stories, R.string.ch_stories_desc),
+                ch(CH_POSTS, R.string.ch_posts, R.string.ch_posts_desc),
                 ch(CH_GROUPS, R.string.ch_groups, R.string.ch_groups_desc),
             ),
         )
@@ -100,13 +105,14 @@ class Notifier(private val app: Context) {
     private fun whenWhere(c: Context, ev: Ev) =
         listOfNotNull(cardWhen(c, ev, null, c.resources.configuration.locales[0]), venueText(ev.e)).joinToString(" · ")
 
-    fun event(ev: Ev, saved: Boolean): Boolean {
+    fun event(ev: Ev, saved: Boolean, priority: Boolean = false): Boolean {
         channels()
         val c = res()
         val e = ev.e
         val nid = "e:${e.id}".hashCode()
         val line = whenWhere(c, ev)
-        val b = builder(CH_EVENTS)
+        val channel = if (priority) CH_PRIORITY else CH_EVENTS
+        val b = builder(channel)
             .setLargeIcon(catIcon(e.c))
             .setContentTitle(e.t)
             .setContentText(line)
@@ -118,7 +124,7 @@ class Notifier(private val app: Context) {
             b.addAction(0, c.getString(R.string.save_short), PendingIntent.getBroadcast(app, nid, save, PI))
         }
         b.addAction(0, c.getString(R.string.add_calendar), PendingIntent.getActivity(app, nid, calendarIntent(ev), PI))
-        return post(nid, CH_EVENTS, b.build())
+        return post(nid, channel, b.build())
     }
 
     fun eventGroup(cat: String, count: Int, items: List<Ev>): Boolean {
@@ -140,21 +146,47 @@ class Notifier(private val app: Context) {
 
     fun storyId(key: String) = "s:$key".hashCode()
 
-    fun story(key: String, name: String, url: String): Boolean {
+    fun story(key: String, name: String, url: String, priority: Boolean = false): Boolean {
         channels()
         val c = res()
         val nid = storyId(key)
         val open = Intent(app, ActionActivity::class.java).setAction(ACT_STORY).putExtra(X_KEY, key).putExtra(X_URL, url)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val mute = Intent(app, Actions::class.java).setAction(ACT_MUTE).putExtra(X_KEY, key).putExtra(X_NID, nid)
-        val b = builder(CH_STORIES)
+        val channel = if (priority) CH_PRIORITY else CH_STORIES
+        val b = builder(channel)
             .setContentTitle(c.getString(R.string.story_title, name))
             .setContentText(c.getString(R.string.story_text))
             .setCategory(NotificationCompat.CATEGORY_SOCIAL)
             .setTimeoutAfter(DAY_MS)
             .setContentIntent(PendingIntent.getActivity(app, nid, open, PI))
             .addAction(0, c.getString(R.string.mute_source), PendingIntent.getBroadcast(app, nid, mute, PI))
-        return post(nid, CH_STORIES, b.build())
+        return post(nid, channel, b.build())
+    }
+
+    // "New post from <name>": tap fires Instagram's/Facebook's own tap intent (the post itself) while we hold it, else the profile.
+    fun postAlert(key: String, name: String, text: String, url: String, held: String, pic: Bitmap?, priority: Boolean): Boolean {
+        channels()
+        val c = res()
+        val nid = "p:$key".hashCode()
+        val open = Intent(app, ActionActivity::class.java).setAction(ACT_OPEN).putExtra(X_ID, held).putExtra(X_URL, url)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val mute = Intent(app, Actions::class.java).setAction(ACT_MUTE).putExtra(X_KEY, key).putExtra(X_NID, nid)
+        val body = text.ifBlank { c.getString(R.string.post_text) }
+        val channel = if (priority) CH_PRIORITY else CH_POSTS
+        val b = builder(channel)
+            .setContentTitle(c.getString(R.string.post_title, name))
+            .setContentText(body)
+            .setStyle(
+                if (pic != null) NotificationCompat.BigPictureStyle().bigPicture(pic).setSummaryText(body)
+                else NotificationCompat.BigTextStyle().bigText(body),
+            )
+            .setCategory(NotificationCompat.CATEGORY_SOCIAL)
+            .setTimeoutAfter(DAY_MS)
+            .setContentIntent(PendingIntent.getActivity(app, nid, open, PI))
+            .addAction(0, c.getString(R.string.mute_source), PendingIntent.getBroadcast(app, nid, mute, PI))
+        if (pic != null) b.setLargeIcon(pic)
+        return post(nid, channel, b.build())
     }
 
     fun groupPost(p: GroupPost, pic: Bitmap?): Boolean {

@@ -24,6 +24,10 @@ def public_sources(sources: list[dict], state: dict) -> list[dict]:
         st = state.get(s["id"], {})
         row = {k: s[k] for k in PUBLIC_SOURCE_KEYS if s.get(k)}
         row["n"] = row.pop("name")
+        if s.get("priority"):
+            row["pri"] = True
+        if s.get("watch"):
+            row["dw"] = True
         row.update({"st": st.get("st", "new" if s["type"] != "none" else "social"), "ok": st.get("ok"), "cnt": st.get("cnt")})
         out.append(_clean(row))
     return out

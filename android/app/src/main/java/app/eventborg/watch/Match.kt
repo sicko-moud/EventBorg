@@ -45,6 +45,34 @@ fun matchStory(title: String, text: String, targets: List<Target>): Target? {
     return longest(hay, targets) { it.needles }
 }
 
+// "<handle> shared a post", "<Page> delte et opslag", "<x> hat einen Beitrag geteilt" (folded text). Activity on
+// your own posts and posts inside groups ("posted in <Group>") are not new posts by that account.
+private val POST_WORD = Regex(
+    "(?<![\\p{L}])(?:" + listOf(
+        "shared (?:a|an|\\d+) (?:new )?(?:post|posts|photo|photos|video|videos|reel)",
+        "posted (?:a|an|\\d+) (?:new )?(?:post|photo|photos|video|videos|reel)",
+        "just (?:posted|shared)", "new post", "added (?:a|\\d+) new (?:photo|photos|video|videos)",
+        "delte (?:et|en|\\d+) (?:nyt |ny )?(?:opslag|billede|billeder|video|videoer|reel)", "har (?:lige )?delt",
+        "nyt opslag", "slog (?:et|en) (?:opslag|billede|video) op", "har (?:lige )?slaet (?:noget|et opslag|et billede) op",
+        "tilfojede (?:et|en|\\d+) (?:nyt|nye|ny) (?:billede|billeder|video|videoer)",
+        "hat (?:einen|ein|\\d+) (?:neuen |neues )?(?:beitrag|foto|fotos|video|videos|reel) (?:geteilt|gepostet)",
+        "neuer beitrag", "hat gerade",
+    ).joinToString("|") + ")(?![\\p{L}])",
+)
+private val NOT_POST = Regex(
+    "(?<![\\p{L}])(?:your|din|dit|dine|dein|deine|deinen|ihren|ihre|commented|kommenterede|kommentiert|liked|likes|" +
+        "synes godt om|gefallt|tagged|taggede|markiert|mentioned|naevnte|erwahnt|posted in|skrev i|in the group|i gruppen|" +
+        "in der gruppe|story|historie)(?![\\p{L}])",
+)
+
+fun isPostText(folded: String) = POST_WORD.containsMatchIn(folded) && !NOT_POST.containsMatchIn(folded)
+
+fun matchPost(title: String, text: String, targets: List<Target>): Target? {
+    val hay = fold("$title\n$text")
+    if (!isPostText(hay)) return null
+    return longest(hay, targets) { it.needles }
+}
+
 fun matchGroup(title: String, text: String, groups: List<GroupTarget>): GroupTarget? {
     val hay = fold("$title\n$text")
     return longest(hay, groups.filter { it.needle.length >= 4 }) { listOf(it.needle) }

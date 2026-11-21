@@ -21,6 +21,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
@@ -60,7 +61,7 @@ class Graph(app: App) {
     val stories by lazy { Stories(app) }
     val watch by lazy { WatchStore(app) }
     val repo = Repo(app, { http }, scope) { api.stories()?.let(stories::remote) }
-    val topics by lazy { Topics(prefs, watch.state, scope) }
+    val topics by lazy { Topics(prefs, watch.state, repo.data.map { d -> d.sources.filter { it.pri }.map { it.id }.toSet() }, scope) }
     val notifier by lazy { Notifier(app) }
     val detector by lazy { Detector(this) }
     val drafts = HashMap<String, Extract>()
@@ -74,6 +75,7 @@ class Graph(app: App) {
             runCatching { Listen.setEnabled(ctx, listen) }
             watch.prune()
         }
+        scope.launch(Dispatchers.IO) { repo.data.collect { if (it.sources.isNotEmpty()) watch.seed(it.sources) } }
     }
 }
 

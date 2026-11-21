@@ -151,3 +151,15 @@ def test_moderation_publishes_edited_approvals_and_forgets_rejections():
     assert box["trust"] == {"s1": 1} and gh.closed[0][0] == 5
     inbox.forget(box, ["s1"])
     assert box["trust"] == {} and e["_by"] is None
+
+
+def test_post_item_from_a_phone_is_a_listed_source_but_not_trusted():
+    srcs = {"hk": {"id": "hk", "ig": "hkctutten", "local": True}}
+    it = {"key": "in:1:a", "channel": "post", "source": "hk", "conf": 0.93, "ts": 1795000000000,
+          "draft": {"title": "Fredagsbar", "start": "2026-11-27T20:00"}}
+    c = inbox.candidate_from_item(it, srcs)
+    assert c["src"] == {"id": "hk", "kind": "ig_post", "url": "https://www.instagram.com/hkctutten/"}
+    assert c["res"]["is_event"] and c["res"]["confidence"] == 0.93 and c["res"]["title"] == "Fredagsbar"
+    assert c["local"] and not c["trusted"] and not c["replyable"]
+    spoofed = inbox.candidate_from_item({**it, "source": "nope"}, srcs)
+    assert not spoofed["res"]["is_event"]

@@ -5,6 +5,7 @@ import { robotsAllows } from "../src/robots.js";
 import { createHmac } from "node:crypto";
 import { classify, igMessages, inbound, stripNames, waMessages } from "../src/social.js";
 import { byHandle, byText, eligible, storyMessage } from "../src/stories.js";
+import { parsePost, postPrompt } from "../src/posts.js";
 import { activeChannels, metaSignatureOk, parseSignedRequest, seal, sign, unseal, verify } from "../src/util.js";
 
 const ROBOTS = `
@@ -189,4 +190,17 @@ test("story matcher: handles, names on word boundaries, folding, eligibility", (
   const msg = storyMessage({ sourceId: "mejeriet", name: "Mejeriet", url: "https://www.instagram.com/stories/mejerietsonderborg/", ts: 5 });
   assert.equal(msg.condition, "'st_all' in topics || 'st_mejeriet' in topics");
   assert.equal(msg.data.ts, "5");
+});
+
+test("post reports: fresh timestamp, scrubbed text, base64 picture only", () => {
+  const now = Date.parse("2026-11-22T12:00:00Z");
+  const ok = parsePost({ sourceId: "hk", ts: now - 60000, text: "hkctutten shared a post: Fredagsbar kl 20, ring 12 34 56 78", img: "/9j/4AAQ" }, now);
+  assert.equal(ok.sourceId, "hk");
+  assert.ok(!ok.text.includes("12 34 56 78"));
+  assert.equal(ok.img, "/9j/4AAQ");
+  assert.equal(parsePost({ sourceId: "hk", ts: now - 3600000, text: "x" }, now), null);
+  assert.equal(parsePost({ ts: now, text: "x" }, now), null);
+  assert.equal(parsePost({ sourceId: "hk", ts: now, img: "<script>" }, now).img, null);
+  const prompt = postPrompt({ n: "HK", ig: "hkctutten" }, "Fredagsbar", "Sunday 2026-11-22");
+  assert.ok(prompt.includes("HK (Instagram @hkctutten)") && prompt.includes("Fredagsbar"));
 });

@@ -65,3 +65,13 @@ def test_event_payload_fits_fcm_limit():
     assert "desc" not in ev_json and ev_json["id"] == "e1"
     many = push.group_data("music", [ev(i, t="T" * 200) for i in range(40)])
     assert len(json.dumps(many, ensure_ascii=False).encode()) < 4096 and many["n"] == "40"
+
+
+def test_priority_source_events_are_never_grouped():
+    events = [ev(i) for i in range(4)] + [ev(9, src=("hk", "hus"))]
+    msgs = push.plan(events, {"hk"})
+    singles = [m for m in msgs if m["data"]["type"] == "event"]
+    assert [m["data"]["id"] for m in singles] == ["e9"]
+    assert "'s_hk' in topics" in singles[0]["condition"]
+    group = next(m for m in msgs if m["data"]["type"] == "group")
+    assert group["data"]["n"] == "4"

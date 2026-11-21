@@ -84,15 +84,19 @@ def message(topics: list[str], data: dict, collapse: str | None = None) -> dict:
     return {"condition": condition(topics), "data": data, "android": android}
 
 
-def plan(events: list[dict]) -> list[dict]:
+def plan(events: list[dict], priority: frozenset[str] | set[str] = frozenset()) -> list[dict]:
     """One message per event, or one per category when a category has more than GROUP_OVER new events
-    (or ≥2 when the whole run is a flood). Each device gets every event at most once."""
+    (or ≥2 when the whole run is a flood). Each device gets every event at most once. Events from priority sources
+    are never grouped: the app shows them on their own heads-up channel."""
     events = sorted(events, key=lambda e: e["s"])
     by_cat: dict[str, list[dict]] = {}
-    for e in events:
-        by_cat.setdefault(e.get("c", "other"), []).append(e)
-    flood = len(events) > FLOOD_OVER
     msgs = []
+    for e in events:
+        if priority.intersection(_src_ids(e)):
+            msgs.append(message(["all", f"c_{e.get('c', 'other')}", *(f"s_{s}" for s in _src_ids(e))], event_data(e)))
+        else:
+            by_cat.setdefault(e.get("c", "other"), []).append(e)
+    flood = len(events) > FLOOD_OVER
     for cat, evs in by_cat.items():
         if len(evs) > GROUP_OVER or (flood and len(evs) >= 2):
             srcs = [sid for sid, _ in Counter(sid for e in evs for sid in _src_ids(e)).most_common()]
@@ -178,7 +182,8 @@ def send_pending(out: Path, dry_run: bool = False) -> dict:
     now = datetime.now(TZ)
     todo = [events[i] for i in ids
             if i in events and events[i].get("st", "ok") == "ok" and datetime.fromisoformat(events[i]["s"]) > now]
-    msgs = plan(todo)
+    pri = {s["id"] for s in _load(out / "sources.json", {}).get("sources", []) if s.get("pri")}
+    msgs = plan(todo, pri)
     sa = service_account()
     if dry_run or not sa:
         for m in msgs:

@@ -79,6 +79,7 @@ fun ListenerScreen(back: () -> Unit) {
                 Heading(stringResource(R.string.l_what_h))
                 Para(stringResource(R.string.l_reads))
                 Para(stringResource(R.string.l_never))
+                Para(stringResource(R.string.l_posts))
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(onClick = {
                     g.prefs.setListen(false)
@@ -91,6 +92,8 @@ fun ListenerScreen(back: () -> Unit) {
                 Para(stringResource(R.string.l_reads))
                 Heading(stringResource(R.string.l_never_h))
                 Para(stringResource(R.string.l_never))
+                Heading(stringResource(R.string.l_posts_h))
+                Para(stringResource(R.string.l_posts))
                 Heading(stringResource(R.string.l_groups_h))
                 Para(stringResource(R.string.l_groups))
                 Heading(stringResource(R.string.l_hide_h))

@@ -70,6 +70,8 @@ data class Source(
     val st: String? = null,
     val ok: String? = null,
     val cnt: Int = 0,
+    val pri: Boolean = false,
+    val dw: Boolean = false,
 )
 
 val CATEGORIES = listOf(
@@ -105,6 +107,9 @@ data class Extracted(
     val tok: String? = null,
     val err: String? = null,
 )
+
+@Serializable
+data class PostVerdict(val ok: Boolean = false, val is_event: Boolean = false, val title: String? = null)
 
 @Serializable
 data class Channels(val ig: String? = null, val wa: String? = null)

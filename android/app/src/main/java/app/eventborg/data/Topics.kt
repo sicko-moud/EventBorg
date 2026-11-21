@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.Task
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -17,18 +18,20 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.resume
 
-// Watched listed sources count as favourites for story alerts; muted ones get no topic.
-fun wantedTopics(p: UserPrefs, w: WatchState = WatchState()): Set<String> = buildSet {
+// Favourite, watched and priority sources get their own topics (priority ones even when not a favourite); a source's
+// own switch turns its topic off, and muted ones get no story topic. "Off" turns everything off.
+fun wantedTopics(p: UserPrefs, w: WatchState = WatchState(), pri: Set<String> = emptySet()): Set<String> = buildSet {
+    val mine = p.favSrcs + w.watchedSources + pri
     when (p.notify) {
         NOTIFY_ALL -> add("all")
         NOTIFY_FAV -> {
             p.favCats.forEach { add("c_$it") }
-            p.favSrcs.forEach { add("s_$it") }
+            mine.filter { p.on(N_EVENTS, it) }.forEach { add("s_$it") }
         }
     }
     when (p.stories) {
         NOTIFY_ALL -> add("st_all")
-        NOTIFY_FAV -> (p.favSrcs + w.watchedSources - w.muted).forEach { add("st_$it") }
+        NOTIFY_FAV -> (mine - w.muted).filter { p.on(N_STORIES, it) }.forEach { add("st_$it") }
     }
 }
 
@@ -37,7 +40,12 @@ private suspend fun Task<Void>.ok(): Boolean = suspendCancellableCoroutine { c -
 }
 
 // Keeps FCM topic subscriptions equal to the settings; failed calls are retried on the next change or app start.
-class Topics(private val prefs: Prefs, private val watch: StateFlow<WatchState>, private val scope: CoroutineScope) {
+class Topics(
+    private val prefs: Prefs,
+    private val watch: StateFlow<WatchState>,
+    private val pri: Flow<Set<String>>,
+    private val scope: CoroutineScope,
+) {
     private val mutex = Mutex()
     @Volatile private var wanted: Set<String>? = null
 
@@ -45,7 +53,7 @@ class Topics(private val prefs: Prefs, private val watch: StateFlow<WatchState>,
     fun start() {
         if (!BuildConfig.FIREBASE) return
         scope.launch {
-            combine(prefs.state.filter { it.loaded }, watch) { p, w -> wantedTopics(p, w) }
+            combine(prefs.state.filter { it.loaded }, watch, pri) { p, w, s -> wantedTopics(p, w, s) }
                 .distinctUntilChanged().debounce(1500).collect {
                     wanted = it
                     sync(it)

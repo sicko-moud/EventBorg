@@ -116,7 +116,7 @@ fun AppNav(links: MutableStateFlow<Any?>) {
         NavHost(nav, startDestination = FeedR, modifier = Modifier.padding(pad).consumeWindowInsets(pad)) {
             composable<FeedR> { FeedScreen(openEvent) }
             composable<SavedR> { SavedScreen(openEvent, openSource) }
-            composable<WatchR> { WatchScreen(it.toRoute<WatchR>().link, { go(ListenerR) }, { go(GroupPostsR) }) }
+            composable<WatchR> { WatchScreen(it.toRoute<WatchR>().link, { go(ListenerR) }, { go(GroupPostsR) }, openSource) }
             composable<SourcesR> { SourcesScreen(openSource) { go(AddEventR) } }
             composable<SettingsR> { SettingsScreen({ go(ListenerR) }, { go(AddEventR) }) }
             composable<DetailR> { DetailScreen(it.toRoute<DetailR>().id, back, openSource) }
