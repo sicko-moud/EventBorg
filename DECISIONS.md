@@ -44,3 +44,4 @@
 - M2: /privacy, /data-deletion, /organizers in EN/DA (?lang= or Accept-Language); / shows /organizers. The DELETE/SLET command and Meta's deletion callback are described now and built in M3.
 - M2: Worker deployed to https://eventborg.eventborg-worker.workers.dev (workers.dev subdomain auto-registered); KV namespace id is in wrangler.toml (not a secret). GH_TOKEN not set yet, so /submit skips repository_dispatch and the 15-min cron picks items up.
 - M2: `python -m pipeline push --test` (and workflow_dispatch input test_push) sends one event to the `test` topic only, to check FCM credentials without reaching subscribers.
+- M2: google-services.json lives in android/app/ (the app module M4 will create); both Firebase files stay gitignored. The same service account is a GitHub secret (event pushes) and a Worker secret (M3 story alerts).
