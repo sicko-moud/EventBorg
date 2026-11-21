@@ -128,3 +128,12 @@ export const fold = (s) =>
   String(s || "").toLowerCase().replace(/[øæåß]/g, (c) => FOLD[c]).replace(/aa/g, "a").normalize("NFKD").replace(/[̀-ͯ]/g, "");
 
 export const graph = (env) => `https://graph.facebook.com/${env.GRAPH_VERSION || "v27.0"}`;
+
+export const igInbox = (env) => env.IG_PUBLIC_INBOX === "true";
+export const waActive = (env) => Boolean(env.WA_TOKEN && env.WA_PHONE_ID && env.WA_NUMBER);
+
+// The ways in that are live right now; the app's "Add your event" screen and the static pages show only these.
+export function activeChannels(env) {
+  const wa = waActive(env) ? String(env.WA_NUMBER).replace(/\D/g, "") : "";
+  return { ig: igInbox(env) && env.IG_HANDLE ? env.IG_HANDLE : null, wa: wa ? `+${wa}` : null };
+}

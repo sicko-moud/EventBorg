@@ -1,11 +1,10 @@
 import { sendReply } from "./reply.js";
-import { bearerOk, fail, graph, json, readJson, unseal } from "./util.js";
+import { bearerOk, fail, graph, json, readJson, unseal, waActive } from "./util.js";
 
 // Endpoints for the GitHub inbox job only (Bearer INBOX_TOKEN). Social tokens never leave the Worker;
 // media bytes are streamed through and never stored.
 const MAX_MEDIA = 8_000_000;
 const CDN = /^https:\/\/[^/?#]+\.(fbcdn\.net|cdninstagram\.com|fbsbx\.com)\//;
-const EXT_TYPE = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
 
 async function pull(env, url) {
   const limit = Math.min(50, Number(url.searchParams.get("limit")) || 50);
@@ -22,17 +21,12 @@ async function pull(env, url) {
 
 async function resolveMedia(env, ref) {
   if (ref.startsWith("wa:")) {
+    if (!waActive(env)) return null;
     const auth = { authorization: `Bearer ${env.WA_TOKEN}` };
     const meta = await fetch(`${graph(env)}/${encodeURIComponent(ref.slice(3))}`, { headers: auth });
     if (!meta.ok) return null;
     const m = await meta.json();
     return { res: await fetch(m.url, { headers: auth }), type: m.mime_type };
-  }
-  if (ref.startsWith("tg:")) {
-    const f = await fetch(`https://api.telegram.org/bot${env.TG_TOKEN}/getFile?file_id=${encodeURIComponent(ref.slice(3))}`);
-    const path = f.ok ? (await f.json()).result?.file_path : null;
-    if (!path) return null;
-    return { res: await fetch(`https://api.telegram.org/file/bot${env.TG_TOKEN}/${path}`), type: EXT_TYPE[path.split(".").pop().toLowerCase()] };
   }
   return CDN.test(ref) ? { res: await fetch(ref) } : null;
 }
@@ -83,25 +77,11 @@ async function igDiscovery(env, url) {
   return new Response(r.body, { status: r.status, headers });
 }
 
-async function setup(req, env) {
-  const out = {};
-  if (env.TG_TOKEN && env.TG_SECRET) {
-    const r = await fetch(`https://api.telegram.org/bot${env.TG_TOKEN}/setWebhook`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ url: `${new URL(req.url).origin}/tg/webhook`, secret_token: env.TG_SECRET, allowed_updates: ["message"] }),
-    });
-    out.telegram = (await r.json().catch(() => ({}))).description || `HTTP ${r.status}`;
-  }
-  return json({ ok: true, ...out });
-}
-
 export async function job(req, env, path, url) {
   if (!bearerOk(req, env.INBOX_TOKEN)) return fail("forbidden", 403);
   if (req.method === "GET" && path === "/job/inbox") return pull(env, url);
   if (req.method === "GET" && path === "/job/media") return media(env, url);
   if (req.method === "POST" && path === "/job/done") return done(req, env);
   if (req.method === "GET" && path === "/job/ig") return igDiscovery(env, url);
-  if (req.method === "POST" && path === "/job/setup") return setup(req, env);
   return fail("not_found", 404);
 }

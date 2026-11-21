@@ -1,4 +1,4 @@
-import { graph } from "./util.js";
+import { graph, igInbox, waActive } from "./util.js";
 
 const WINDOW = 23.5 * 3600 * 1000;
 const WA_CAP = 900;
@@ -19,10 +19,10 @@ export async function sendReply(env, h, text) {
   const body = String(text).slice(0, 400);
   let r;
   if (h.c === "ig_dm") {
-    if (!env.META_TOKEN) return "no_token";
+    if (!igInbox(env) || !env.META_TOKEN) return "inactive";
     r = await post(`${graph(env)}/me/messages?access_token=${encodeURIComponent(env.META_TOKEN)}`, { recipient: { id: h.to }, message: { text: body } });
   } else if (h.c === "wa") {
-    if (!env.WA_TOKEN || !env.WA_PHONE_ID) return "no_token";
+    if (!waActive(env)) return "inactive";
     const cap = await waCapReached(env);
     if (cap.full) return "wa_cap";
     r = await post(`${graph(env)}/${env.WA_PHONE_ID}/messages`, {
@@ -30,12 +30,6 @@ export async function sendReply(env, h, text) {
       text: { body, preview_url: true }, ...(h.mid && { context: { message_id: h.mid } }),
     }, { authorization: `Bearer ${env.WA_TOKEN}` });
     if (r.ok) await cap.bump();
-  } else if (h.c === "tg") {
-    if (!env.TG_TOKEN) return "no_token";
-    r = await post(`https://api.telegram.org/bot${env.TG_TOKEN}/sendMessage`, {
-      chat_id: h.to, text: body, link_preview_options: { is_disabled: true },
-      ...(h.mid && { reply_parameters: { message_id: Number(h.mid), allow_sending_without_reply: true } }),
-    });
   } else {
     return "no_channel";
   }

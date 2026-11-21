@@ -53,7 +53,7 @@ def same_event(a: dict, b: dict) -> bool:
     return similarity(a["t"], b["t"]) >= THRESHOLD
 
 
-SOCIAL = {"ig_dm", "ig_post", "wa", "tg", "fb", "app"}
+SOCIAL = {"ig_dm", "ig_post", "wa", "fb", "app"}
 
 
 def _rank(e: dict, src_types: dict) -> tuple:

@@ -3,15 +3,14 @@ import { putItem } from "./inbox.js";
 import { sendReply } from "./reply.js";
 import { byHandle, byText, loadSources, raiseStory } from "./stories.js";
 import {
-  clientIp, fail, graph, hmacHex, json, limited, metaSignatureOk, parseSignedRequest, readJson, safeEqual, seal, senderHash,
+  clientIp, fail, graph, hmacHex, igInbox, json, limited, metaSignatureOk, parseSignedRequest, safeEqual, seal, senderHash, waActive,
 } from "./util.js";
 
 const STORY = new Set(["story", "ig_story", "story_mention"]);
 const IMAGE = new Set(["image", "media", "ig_post", "share"]);
-const DELETE = /^\s*\/?(delete|slet)(\s+(my|mine)\s+data)?\s*[.!]?\s*$/i;
-const MEDIA_REF = /^(https:\/\/|wa:|tg:)/;
+const DELETE = /^\s*(delete|slet)(\s+(my|mine)\s+data)?\s*[.!]?\s*$/i;
+const MEDIA_REF = /^(https:\/\/|wa:)/;
 
-const WELCOME = "Hej! Send mig et arrangement i Sønderborg Kommune: tekst, link eller et billede af en plakat. / Hi! Send me an event in Sønderborg Municipality: text, a link or a photo of a poster.";
 const DELETED = "Dine data hos EventBorg er slettet. / Your EventBorg data has been deleted.";
 
 // Instagram DMs (Instagram API with Facebook Login) → normalized messages; our own echoes are skipped.
@@ -48,17 +47,13 @@ export function waMessages(body, phoneId) {
   return out;
 }
 
-export function tgMessage(update) {
-  const m = update?.message;
-  if (!m || m.chat?.type !== "private" || !m.from || m.from.is_bot) return null;
-  const photos = m.photo || [];
-  const photo = photos.filter((p) => Math.max(p.width, p.height) <= 1280).pop() || photos.at(-1);
-  const doc = m.document && /^image\//.test(m.document.mime_type || "") ? m.document : null;
-  const atts = photo || doc ? [{ type: "image", url: `tg:${(photo || doc).file_id}` }] : m.video ? [{ type: "video" }] : [];
-  const links = (m.entities || m.caption_entities || []).filter((e) => e.type === "text_link" && e.url).map((e) => e.url);
-  const text = [m.text || m.caption || "", ...links].filter(Boolean).join("\n");
-  const names = [m.from.first_name, m.from.last_name, m.from.username && `@${m.from.username}`, m.from.username].filter((n) => n && n.length > 1);
-  return { from: String(m.from.id), to: String(m.chat.id), mid: m.message_id, text, atts, names, cmd: /^\/(start|help)\b/.test(m.text || "") };
+// Public Instagram DMs/story mentions need App Review, so they stay off until IG_PUBLIC_INBOX=true; WhatsApp runs
+// only once its token, phone number id and number exist. Everything else is acknowledged and dropped.
+export function inbound(body, env) {
+  return [
+    ...(igInbox(env) ? igMessages(body).map((m) => ["ig_dm", m]) : []),
+    ...(waActive(env) ? waMessages(body, env.WA_PHONE_ID).map((m) => ["wa", m]) : []),
+  ];
 }
 
 // Stories go to story alerts and are never extracted; everything else with text or an image is an inbox item.
@@ -66,7 +61,6 @@ export function classify(msg) {
   const types = msg.atts.map((a) => a.type);
   const text = [msg.text, ...msg.atts.map((a) => a.title)].filter(Boolean).join("\n").slice(0, 4000);
   if (types.some((t) => STORY.has(t))) return { kind: "story", mention: types.includes("story_mention"), text };
-  if (msg.cmd) return { kind: "start" };
   if (!msg.atts.length && DELETE.test(msg.text)) return { kind: "delete" };
   const media = msg.atts.filter((a) => IMAGE.has(a.type) && MEDIA_REF.test(a.url || "")).map((a) => a.url).slice(0, 3);
   if (!text.trim() && !media.length) return { kind: "skip" };
@@ -109,8 +103,7 @@ async function handle(env, ctx, channel, msg) {
   if (c.kind === "skip") return;
   const sender = await senderHash(env, channel, msg.from);
   if (await limited(env.RL_SENDER, sender)) return console.log(`sender rate limited (${channel})`);
-  const h = { c: channel, to: msg.to || msg.from, mid: msg.mid, ts: Date.now() };
-  if (c.kind === "start") return ctx.waitUntil(sendReply(env, h, WELCOME));
+  const h = { c: channel, to: msg.from, mid: msg.mid, ts: Date.now() };
   if (c.kind === "delete") {
     await deleteSenders(env, ctx, [sender]);
     return ctx.waitUntil(sendReply(env, h, DELETED));
@@ -149,19 +142,7 @@ export async function metaWebhook(req, env, ctx) {
   } catch {
     return fail("bad_request", 400);
   }
-  await settle([
-    ...igMessages(body).map((m) => handle(env, ctx, "ig_dm", m)),
-    ...waMessages(body, env.WA_PHONE_ID).map((m) => handle(env, ctx, "wa", m)),
-  ]);
-  return json({ ok: true });
-}
-
-export async function tgWebhook(req, env, ctx) {
-  if (await limited(env.RL_HOOK, clientIp(req))) return fail("rate_limited", 429);
-  if (!env.TG_SECRET || !safeEqual(req.headers.get("x-telegram-bot-api-secret-token") || "", env.TG_SECRET)) return fail("forbidden", 403);
-  const { body, err } = await readJson(req, 64000);
-  const m = err ? null : tgMessage(body);
-  if (m) await settle([handle(env, ctx, "tg", m)]);
+  await settle(inbound(body, env).map(([channel, m]) => handle(env, ctx, channel, m)));
   return json({ ok: true });
 }
 

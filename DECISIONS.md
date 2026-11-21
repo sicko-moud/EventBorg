@@ -60,7 +60,14 @@
 - M3: Business Discovery: ≤6 accounts per run, each every 90–120 min (spread by id hash), latest 8 posts ≤21 days old, captions batched 10 per call; X-App-Usage ≥80% or rate-limit codes pause polling; a source's first poll is silent. Posts of a listed source count as a trusted sender; img=null (CDN URLs expire, no re-hosting).
 - M3: Meta documents no owner for a forwarded story, so it matches the message text against handles/names (then the sender's username); story_mention resolves the sender via the User Profile API, cached as hash→source id for 7 days.
 - M3: /story-seen accepts a ts from the last 30 min; one report raises the alert (3 h cooldown bounds abuse; 2-report rule is an M7 idea).
-- M3: Telegram: /start gets a bilingual welcome, /delete and /slet work like DELETE, hidden text_link URLs are added to the text. POST /job/setup registers the webhook + secret token from the Worker's own secrets.
 - M3: Relative dates and missing years resolve against the post/message date (Python port of fixYear); the shared spec is split into intro / intro_batch / rules (d2) for single and batched calls.
 - M3: Phone scrub now also removes a number followed by a sentence period ("Ring 12345678.").
 - M3: Graph API version is a Worker var (v27.0, latest on 2026-11-21).
+- M3 revision (owner, 2026-11-21): Telegram dropped completely: webhook, media, replies, /job/setup, TG_* secrets/vars, pages and spec. DELETE/SLET no longer takes a leading slash (that was for bot commands).
+- M3 revision (owner): public Instagram DMs and story mentions sit behind Worker var IG_PUBLIC_INBOX="false" (code kept for a later App Review); Business Discovery polling and Meta's deletion callback stay on.
+- M3 revision (owner): WhatsApp is live only when WA_TOKEN, WA_PHONE_ID and WA_NUMBER all exist; otherwise webhook messages are dropped and media/replies return "inactive", with no errors and no mention on the pages.
+- M3 revision: GET /channels {ig, wa} (1 h cache) lets the app's "Add your event" screen show only live channels; the static pages use the same helper and hide DELETE steps and the trust rule when no message channel is live.
+- M3 revision (owner): on-device notification detection becomes the primary story feature, plus a local-only watch list (IG/FB profiles, FB groups) and group-post alerts; specced for M5 in CLAUDE.md. The privacy page already describes it, so it is accurate when M5 ships.
+- M5 spec: "Hide original notification" cancels only matched notifications; for a listed venue the user doesn't watch, only when EventBorg showed its own alert, so no notification disappears without a replacement.
+- M5 spec: watching a listed source also subscribes st_<sourceId>, so other users' relayed sightings arrive too; profiles the user adds get no topic and never leave the phone.
+- M5 spec: Facebook group notifications carry no post URL, so "Open" fires the original notification's tap intent while the app still holds it and otherwise opens the group page.

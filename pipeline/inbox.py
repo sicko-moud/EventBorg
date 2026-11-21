@@ -1,4 +1,4 @@
-"""Social inbox: items the Worker queued (Instagram DMs, WhatsApp, Telegram, app drafts) and new Instagram posts
+"""Social inbox: items the Worker queued (app drafts, WhatsApp and, when enabled, Instagram DMs) and new Instagram posts
 of listed sources become events. Auto-publish rules decide; everything else waits in a GitHub Issue for `approve`."""
 import copy
 import hashlib

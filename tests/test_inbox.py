@@ -80,10 +80,10 @@ def test_issue_body_round_trip_keeps_edits_and_marker():
 
 
 def test_candidate_event_has_no_image_and_keeps_channel_source():
-    c = {"day": date(2026, 11, 21), "text": "Koncert lørdag", "src": {"id": "inbox", "kind": "tg"}}
+    c = {"day": date(2026, 11, 21), "text": "Koncert lørdag", "src": {"id": "inbox", "kind": "wa"}}
     e = to_candidate_event({"title": "Koncert", "start": "2026-11-28T20:00", "venue": "Sønderborghus", "town": "Sønderborg",
                             "price": "Gratis", "category": "music"}, c, {})
-    assert e["src"] == [{"id": "inbox", "kind": "tg"}]
+    assert e["src"] == [{"id": "inbox", "kind": "wa"}]
     assert e["img"] is None and e["p"] == {"free": True} and e["s"].startswith("2026-11-28T20:00")
     assert to_candidate_event({"title": "Uden dato"}, c, {}) is None
 

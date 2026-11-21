@@ -3,9 +3,9 @@ import { test } from "node:test";
 import { cleanDraft, findUrl, fixYear } from "../src/draft.js";
 import { robotsAllows } from "../src/robots.js";
 import { createHmac } from "node:crypto";
-import { classify, igMessages, stripNames, tgMessage, waMessages } from "../src/social.js";
+import { classify, igMessages, inbound, stripNames, waMessages } from "../src/social.js";
 import { byHandle, byText, eligible, storyMessage } from "../src/stories.js";
-import { metaSignatureOk, parseSignedRequest, seal, sign, unseal, verify } from "../src/util.js";
+import { activeChannels, metaSignatureOk, parseSignedRequest, seal, sign, unseal, verify } from "../src/util.js";
 
 const ROBOTS = `
 # comment
@@ -151,15 +151,19 @@ test("whatsapp: captions, image refs, phone-number filter, names removed", () =>
   assert.equal(waMessages(body, "OTHER").length, 0);
 });
 
-test("telegram: private chats only, photo ≤1280 px, /start, hidden links", () => {
-  const base = { message_id: 7, from: { id: 42, first_name: "Bo" }, chat: { id: 42, type: "private" } };
-  const m = tgMessage({ message: { ...base, caption: "Plakat", caption_entities: [{ type: "text_link", url: "https://x.dk/e" }],
-    photo: [{ file_id: "s", width: 320, height: 240 }, { file_id: "m", width: 1280, height: 960 }, { file_id: "l", width: 2560, height: 1920 }] } });
-  assert.deepEqual(classify(m), { kind: "item", type: "image", text: "Plakat\nhttps://x.dk/e", media: ["tg:m"] });
-  assert.equal(m.to, "42");
-  assert.equal(classify(tgMessage({ message: { ...base, text: "/start" } })).kind, "start");
-  assert.equal(classify(tgMessage({ message: { ...base, text: "/slet" } })).kind, "delete");
-  assert.equal(tgMessage({ message: { ...base, chat: { id: -5, type: "group" }, text: "hi" } }), null);
+test("channel gates: public Instagram inbox behind IG_PUBLIC_INBOX, WhatsApp needs token + phone id + number", () => {
+  const igBody = ig({ mid: "g1", text: "Koncert fredag" });
+  const waBody = { object: "whatsapp_business_account", entry: [{ changes: [{ field: "messages", value: {
+    metadata: { phone_number_id: "PN1" }, messages: [{ from: "4511", id: "w1", type: "text", text: { body: "Loppemarked" } }] } }] }] };
+  const wa = { WA_TOKEN: "t", WA_PHONE_ID: "PN1", WA_NUMBER: "+45 11 22 33 44" };
+  assert.deepEqual(inbound(igBody, {}), []);
+  assert.deepEqual(inbound(igBody, { IG_PUBLIC_INBOX: "false" }), []);
+  assert.equal(inbound(igBody, { IG_PUBLIC_INBOX: "true" })[0][0], "ig_dm");
+  assert.deepEqual(inbound(waBody, { WA_TOKEN: "t", WA_PHONE_ID: "PN1" }), []);
+  assert.equal(inbound(waBody, wa)[0][0], "wa");
+  assert.deepEqual(activeChannels({ IG_HANDLE: "eventborg", IG_PUBLIC_INBOX: "false" }), { ig: null, wa: null });
+  assert.deepEqual(activeChannels({ IG_HANDLE: "eventborg", IG_PUBLIC_INBOX: "true", ...wa }), { ig: "eventborg", wa: "+4511223344" });
+  assert.equal(classify({ text: "/slet", atts: [] }).kind, "item");
 });
 
 const SOURCES = [

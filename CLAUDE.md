@@ -15,10 +15,10 @@ WORKING RULES (tight token budget, but think like a product owner)
 - Secrets never go in the repo (it is public). Locally read them from a gitignored .env; in CI use GitHub Actions secrets and Cloudflare Worker secrets. Keep .env.example up to date with variable names only. When a milestone needs a key I don't have yet, list exactly which ones in your final reply.
 - When unsure about an API field, read only that endpoint's official doc page. No broad browsing.
 - Keep comments minimal; no boilerplate docstrings or KDoc; no placeholder features. Build and test once per milestone.
-- Write tests only for tricky logic: parsers, dedupe, categorizer, push rules, inbox auto-publish rules, webhook signature checks, story-notification matcher.
+- Write tests only for tricky logic: parsers, dedupe, categorizer, push rules, inbox auto-publish rules, webhook signature checks, story-notification matcher, profile/group link parser, group-post event heuristic.
 
 PRODUCT
-An Android app listing every public event in Sønderborg Municipality (Sønderborg, Als, Nordborg, Augustenborg, Gråsten, Broager…). Events arrive automatically from websites, ticket APIs and social media. They are deduplicated and categorized, and new events trigger an instant push. Local venues' new Instagram/Facebook stories show up as "might be an event" alerts. Free, no login, no ads, no tracking. Not an official municipal app. App name "EventBorg"; Android applicationId app.eventborg; social handle @eventborg (placeholder).
+An Android app listing every public event in Sønderborg Municipality (Sønderborg, Als, Nordborg, Augustenborg, Gråsten, Broager…). Events arrive automatically from websites, ticket APIs and social media. They are deduplicated and categorized, and new events trigger an instant push. New Instagram/Facebook stories from local venues and from profiles the user watches show up as "might be an event" alerts, detected on the phone from Instagram/Facebook notifications; posts in watched Facebook groups that look like events can be added in one tap. Free, no login, no ads, no tracking. Not an official municipal app. App name "EventBorg"; Android applicationId app.eventborg; social handle @eventborg (placeholder).
 
 HARD LIMITS (never trade these away)
 - Free to run: free tiers only, no paid services.
@@ -37,8 +37,8 @@ ARCHITECTURE (free tiers only, nothing to host)
 5. Cloudflare Worker (free): the only always-on piece. Keep it pass-through so it stays under the free CPU limit.
    - App endpoints: POST /extract (text or image → LLM → draft event), POST /submit (confirmed draft). The app shrinks images to ≤1280 px JPEG before upload.
    - Story endpoints: POST /story-seen, GET /stories (see STORY ALERTS).
-   - Social endpoints: GET+POST /meta/webhook for Instagram and WhatsApp (answer the verify-token challenge, check X-Hub-Signature-256); POST /tg/webhook for Telegram (check the secret-token header).
-   - Static pages: /privacy (names the processors: Meta, Google, Cloudflare, GitHub), /data-deletion (Meta requirement), /organizers (how to get listed).
+   - Social endpoints: GET+POST /meta/webhook for Instagram (only with IG_PUBLIC_INBOX=true) and WhatsApp (only once configured); answer the verify-token challenge, check X-Hub-Signature-256. POST /meta/deletion (Meta's data-deletion callback). GET /channels returns the live ways in {ig, wa}.
+   - Static pages: /privacy (names the processors: Meta, Google, Cloudflare, GitHub), /data-deletion (Meta requirement), /organizers (how to get listed). They mention only the live channels.
    - Inbox items become KV records {channel, type, text, media URLs, sender hash, ts}. Never store media bytes. Then send repository_dispatch, at most once per 60 s. Rate-limit per sender and per IP.
 
 WEB SOURCES (sources.yaml, one adapter per type)
@@ -57,38 +57,39 @@ WEB SOURCES (sources.yaml, one adapter per type)
 SOCIAL INBOX (posts and messages; official APIs only, never scrape behind a login)
 Setup (the README gives exact click-by-click steps):
 - An Instagram professional account @eventborg linked to a Facebook Page.
-- One Meta app of type Business, using "Instagram API with Facebook Login" at Standard Access. It serves only our own account, so no App Review. Publish it so webhooks fire; verify the current publishing requirements.
-- WhatsApp Cloud API added to the same Meta app, with a dedicated phone number.
-- A Telegram bot created via BotFather.
+- One Meta app of type Business, using "Instagram API with Facebook Login" at Standard Access: Business Discovery polling and the data-deletion callback.
+- WhatsApp Cloud API added to the same Meta app, with a dedicated phone number (optional).
+- No Facebook Page feed/mention webhooks (they need App Review).
+Switches (channels that aren't live are dropped quietly: no queueing, no replies, no errors, not advertised):
+- IG_PUBLIC_INBOX (Worker var, default "false"): Instagram DMs and story mentions from the public need App Review (Advanced Access) plus Business Verification. The code stays; with false, those webhook events are acknowledged and dropped. Turning it on is my decision.
+- WhatsApp is live only once WA_TOKEN, WA_PHONE_ID and WA_NUMBER all exist.
+- GET /channels, the static pages and the app's "Add your event" screen show only live channels; sharing into the app always works.
 Inputs:
-- Instagram DMs: people forward posts, reels, screenshots or text. Handle the types ig_post, ig_reel, reel, image, video (use the caption/text only), text, and the legacy share type. Story types (story, ig_story, story_mention) are NOT extracted; they go to STORY ALERTS.
-- WhatsApp: people forward messages or flyers to our number. Incoming messages are free. Send at most 1 reply per item, with a hard cap of 900 replies/month to stay inside the free monthly allowance.
-- Telegram: messages forwarded to the bot.
-- Facebook: subscribe our Page to the `feed` and `mention` webhooks if Standard Access allows it. Verify this; if it needs App Review, skip it and note that in DECISIONS.md.
+- Instagram DMs (IG_PUBLIC_INBOX only): people forward posts, reels, screenshots or text. Handle the types ig_post, ig_reel, reel, image, video (use the caption/text only), text, and the legacy share type. Story types (story, ig_story, story_mention) are NOT extracted; they go to STORY ALERTS.
+- WhatsApp (when live): people forward messages or flyers to our number. Incoming messages are free. Send at most 1 reply per item, with a hard cap of 900 replies/month to stay inside the free monthly allowance.
 - Instagram posts (polling): use Business Discovery for sources that have an ig handle. Stagger requests so each account is polled every 1–2 h, and respect rate-limit headers.
+- App drafts: POST /submit from the share target and from a group post's "Add as event".
 Processing (the `inbox` job):
 1. Pull new items from KV. Download media to temp storage only, send it to Gemini, then delete it. Never store or re-host DM media. Events from DMs get img=null; the app shows category art instead.
 2. Gemini returns {is_event, confidence, fields, reason}. Drop non-events silently.
 3. Dedupe against existing events. A match adds the new source and counts as corroboration.
 4. Auto-publish only when ALL of these hold: is_event; confidence ≥0.8; start within 120 days; location inside the municipality; and at least one of trusted sender, corroborated, or confidence ≥0.92.
    Otherwise open a GitHub Issue with the extracted fields and the reason (no media, no personal data). I approve by adding the label `approve`; the next run publishes it. A sender becomes trusted after 3 published events.
-5. Reply in the same channel: "Added: <title>, <date> <link>" or "Thanks, we're checking it." For Instagram and WhatsApp, reply within the 24 h window.
+5. Reply in the same channel (Instagram/WhatsApp, within the 24 h window): "Added: <title>, <date> <link>" or "Thanks, we're checking it."
 6. Continue with the normal publish and push steps.
 Privacy: store only salted hashes of sender IDs; strip names and phone numbers from text; /data-deletion removes a sender's items and trust record.
 
 STORY ALERTS
 Stories are never downloaded, read or analyzed. The app only says "<Source> posted a new story, might be an event" and opens it in Instagram or Facebook.
 Detection:
-a) Server side:
-   - A story_mention webhook, or a story/ig_story forwarded by DM, raises an alert for that account if it matches a source.
-   - Ignore all other accounts. Never fetch the media.
-b) On the device (optional): a NotificationListenerService, used only after the user opts in through a clear disclosure screen. The app must work fully without it.
+a) On the device (PRIMARY): a NotificationListenerService, used only after the user opts in through a clear disclosure screen. The app still works fully without it (relayed alerts and GET /stories keep the strip useful).
    - Act only on notifications from com.instagram.android and com.facebook.katana; return immediately for every other app.
-   - Match the notification title/text against each source's ig handle and names[], plus a story keyword (story/historie/Story).
-   - Read title/text in memory only. Never store or send notification content.
-   - On a match: show a local alert right away if that source is a favourite (or "All local venues" is on).
-   - If the user also enabled sharing: POST /story-seen {sourceId, ts} and nothing else.
-   - Onboarding helper: a list of the sources' Instagram profiles with "Open profile" buttons and a tip to turn on story notifications with the bell icon.
+   - Match title/text against the watch list (see WATCH LIST) and each listed source's ig handle and names[], plus a story keyword (story/historie/Story). Never touch a notification that doesn't match.
+   - Read title/text in memory only. Never store or send story notification content.
+   - On a match: show EventBorg's alert right away if the profile is watched, the source is a favourite, or "All local venues" is on. A watched profile gets its ✓ on its first catch.
+   - "Hide original notification" (setting, on by default): right after a match, cancelNotification() the original Instagram/Facebook one. For a listed venue that isn't watched, only cancel when EventBorg showed its own alert, so nothing is lost silently.
+   - If the user also enabled sharing and the match is a listed source: POST /story-seen {sourceId, ts} and nothing else. Profiles the user added never leave the phone.
+b) Server side (IG_PUBLIC_INBOX only): a story_mention webhook, or a story/ig_story forwarded by DM, raises an alert for that account if it matches a source. Ignore all other accounts. Never fetch the media.
 Relay (in the Worker):
 - Accept only sourceIds that appear in sources.json with kind venue, organizer or business. Rate-limit per IP.
 - Cooldown: at most 1 alert per source per 3 h.
@@ -96,6 +97,24 @@ Relay (in the Worker):
   - Target the condition "'st_all' in topics || 'st_<sourceId>' in topics".
   - Data: {sourceId, name, url, ts}, where url is https://www.instagram.com/stories/<handle>/ or the Facebook Page URL.
 - Keep alerts from the last 24 h in KV; GET /stories returns them with Cache-Control: max-age=60.
+
+WATCH LIST AND GROUP POSTS (on the phone only; uses the same opt-in notification listener)
+Watch a profile:
+- Paste an Instagram or Facebook profile/Page link, or share a profile from the Instagram/Facebook app into EventBorg. The app extracts the handle (instagram.com/<handle>, facebook.com/<page>, profile.php?id=…) plus a display name used for matching (prefilled, editable; Facebook share links carry no name, so ask for it).
+- Suggestions: the listed sources in sources.json that have ig/fb, added with one tap.
+- Each entry: "Open profile" button, the tip "tap the bell and turn on Story notifications", a ✓ once its first story notification has been caught, Remove, Mute.
+- Watched profiles behave like favourite sources for story alerts: an EventBorg notification plus a story-strip circle. Watching a listed source also subscribes st_<sourceId> (unless Story alerts is Off).
+- Profiles the user adds stay on the phone and are never sent to the server. Only listed sources are relayed to other users.
+Watch a group (Facebook has no group API):
+- Paste a facebook.com/groups/<id|slug> link or share the group from the Facebook app. Store the group id/slug and name locally only. Onboarding: set that group's notifications to "All posts".
+- Catch new-post notifications from watched groups: title/text, plus the picture from the notification extras if present. Hide the original (same setting as stories).
+- On-device event heuristic: dates, times, weekdays, prices and EN/DA/DE keywords (event, koncert, fest, billetter, tickets, Veranstaltung …). Match → EventBorg alert "Possible event in <Group>" with the preview. No match → discarded silently.
+- Alert actions: Open (fires the original notification's tap intent while the app still holds it, else opens the group in Facebook); "Add as event" sends the preview text and picture to /extract and shows the editable draft. Nothing from a group leaves the phone without that tap.
+- "Group posts" section: possible-event alerts from the last 7 days, stored on the phone only (text plus a small picture, poster names stripped where recognisable), with the same actions; pruned after 7 days.
+- Own notification channel "Group posts", tunable in Android settings.
+Onboarding (part of the listener disclosure):
+- Set Instagram's story notification channel to Silent in Android settings (deep link to Instagram's notification settings). Not Off: blocked notifications never reach the listener.
+- Option: a separate Instagram/Facebook account used only for EventBorg follows.
 
 DATA MODEL (short JSON keys, nulls omitted)
 - id: stable hash of normalized title + date + venue
@@ -106,7 +125,7 @@ DATA MODEL (short JSON keys, nulls omitted)
 - tags[]
 - p: price {free, min, max} in DKK
 - url: signup/ticket link
-- src[]: sources {id, kind, url}, where kind is one of web | api | ig_dm | ig_post | wa | tg | fb | app
+- src[]: sources {id, kind, url}, where kind is one of web | api | ig_dm | ig_post | wa | fb | app
 - org: organizer
 - img: image URL (null for DM events)
 - sum: summary {en, da}, ≤200 chars each
@@ -131,6 +150,7 @@ PUSH RULES
 - Don't push: on a source's first ingest (silent backfill), for events more than 60 days away, or for updates to existing events.
 - If one run finds more than 3 new events in a category, send one grouped push for that category instead.
 - Story alerts use the topics st_all and st_<sourceId> and a separate Android notification channel, "Story alerts", which users can silence in system settings. A story alert is never merged with event pushes.
+- Group-post alerts are local only, on their own channel "Group posts".
 
 ANDROID APP
 Stack:
@@ -143,7 +163,7 @@ Lightweight:
 - Release APK target ≤6 MB (R8 full mode + resource shrinking), cold start <1 s, baseline profile.
 Screens:
 - Feed:
-  - Story strip at the top: circles for sources that posted a story in the last 24 h (from GET /stories plus local detections), labelled "New story · might be an event". Tap opens the story in Instagram/Facebook (falls back to the browser). Long-press mutes that source.
+  - Story strip at the top: circles for sources and watched profiles that posted a story in the last 24 h (from GET /stories plus local detections), labelled "New story · might be an event". Tap opens the story in Instagram/Facebook (falls back to the browser). Long-press mutes that source.
   - Below it, sticky sections Today / Tomorrow / This weekend / Next week / Later. Compact cards: thumbnail or category art, title, time, venue, category chip, price or "Free", source badge (web/IG/WA…), ★ button.
 - Filters (bottom sheet, saved between sessions): categories (multi-select), date presets + custom range, free only, town, source, favourites only.
 - Search: instant, local, ignores Danish letters (ø/æ/å match o/ae/a).
@@ -153,15 +173,19 @@ Screens:
   - Secondary actions: Add to calendar (CalendarContract insert intent, no permission needed), Share, Save.
 - Saved: saved events, favourite categories, favourite sources. Users can star from any card, chip or source page.
 - Sources: list with last-updated time and status, plus a "Suggest a source" form.
-- Add your event: explains the ways in — DM @eventborg, send to the WhatsApp number or the Telegram bot, or share from any app.
+- Watching: watched profiles and groups, one-tap suggestions from sources.json, add by pasted link, onboarding tips (see WATCH LIST AND GROUP POSTS).
+- Group posts: possible-event alerts from the last 7 days with Open and "Add as event".
+- Add your event: explains the live ways in from GET /channels (Instagram DM to @eventborg only when IG_PUBLIC_INBOX is on, the WhatsApp number only when configured) plus sharing from any app, which always works.
 - Settings:
   - Event notifications: All / Favourites only / Off (mapped to topic subscriptions).
   - Story alerts: Off / Favourite sources / All local venues (mapped to st_ topics).
-  - "Detect stories from my Instagram/Facebook notifications" (opens the disclosure screen and the system access settings).
+  - "Detect stories and group posts from my Instagram/Facebook notifications" (opens the disclosure screen and the system access settings).
+  - "Hide original notification" (on by default).
   - "Share story alerts from local venues", with the explanation "sends only the venue and the time".
   - UI language EN/DA, About/Privacy.
-- Share target: accepts text, URLs and images from any app → calls /extract → shows an editable draft card → Submit.
+- Share target: accepts text, URLs and images from any app → calls /extract → shows an editable draft card → Submit. Instagram/Facebook profile and group links go to the watch list instead.
 - Story alert notification: "<Source> posted a new story, might be an event". Tap opens the story; action: Mute source. Dedupe local and pushed alerts by sourceId within the cooldown window.
+- Group post notification: "Possible event in <Group>" with the preview; actions Open and "Add as event".
 Quality:
 - Accessibility: content descriptions, 48 dp touch targets, works with TalkBack.
 - Empty, error and offline states.
@@ -171,10 +195,10 @@ Quality:
 MILESTONES
 M1 Web ingest: verified sources.yaml (including ig/fb handles), adapters, pipeline, tests, Actions workflow, Pages output. Verify by running locally and printing the event count per source.
 M2 Event push sender following the push rules; Worker app endpoints and static pages.
-M3 Social inbox and story relay: webhooks, KV, repository_dispatch, inbox job, auto-publish rules, Issue moderation, replies, Business Discovery polling, /story-seen and /stories, FCM from the Worker. Verify with the Meta webhook test tool and a real story mention.
+M3 Social inbox and story relay: webhooks (Instagram behind IG_PUBLIC_INBOX, WhatsApp once configured), KV, repository_dispatch, inbox job, auto-publish rules, Issue moderation, replies, Business Discovery polling, /story-seen, /stories and /channels, FCM from the Worker. Verify with the Meta webhook test tool once the keys exist.
 M4 App core: feed (without the story strip), filters, search, detail, saved, sources, settings, cache.
-M5 App push handling (both notification channels), story strip, notification listener and its disclosure/onboarding, share target, "Add your event" screen.
-M6 Size and performance pass; README with exact setup steps for Firebase, GitHub secrets and Pages, Cloudflare, the Gemini key, the Meta app (Instagram/Facebook/WhatsApp, publishing, privacy and data-deletion URLs) and Telegram, plus a keep-alive so GitHub doesn't disable the schedule after 60 days without repo activity.
+M5 App push handling (Event, Story alerts and Group posts channels), story strip, notification listener (primary story detection) with disclosure/onboarding, watch list (profiles and groups), group-post alerts, "Hide original notification", share target (including profile/group links), "Add your event" screen.
+M6 Size and performance pass; README with exact setup steps for Firebase, GitHub secrets and Pages, Cloudflare, the Gemini key, the Meta app (Instagram/WhatsApp, publishing, privacy and data-deletion URLs, and the App Review steps needed before IG_PUBLIC_INBOX=true), plus a keep-alive so GitHub doesn't disable the schedule after 60 days without repo activity.
 M7 Improvements: implement the best items from IDEAS.md within HARD LIMITS. List any that need my approval (see WORKING RULES) and stop before doing them.
 
 IDEAS TO CONSIDER (optional starting points; judge value against size and cost)
