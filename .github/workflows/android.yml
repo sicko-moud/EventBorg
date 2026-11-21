@@ -2,6 +2,8 @@ name: android
 
 on:
   push:
+    branches: ["**"]
+    tags: ["v*"]
     paths: ["android/**", ".github/workflows/android.yml"]
   workflow_dispatch:
 
@@ -31,7 +33,23 @@ jobs:
           GS: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: if [ -n "$GS" ]; then printf '%s' "$GS" > app/google-services.json; fi
 
+      # Without the keystore secret (forks) the release build falls back to the debug key.
+      - name: Release keystore
+        env:
+          KS: ${{ secrets.EB_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then
+            printf '%s' "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
+            echo "EB_KEYSTORE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "::error::A release tag needs the EB_KEYSTORE_B64 secret"; exit 1
+          fi
+
       - run: ./gradlew --no-daemon testDebugUnitTest assembleRelease
+        env:
+          EB_KEYSTORE_PASSWORD: ${{ secrets.EB_KEYSTORE_PASSWORD }}
+          EB_KEY_ALIAS: ${{ secrets.EB_KEY_ALIAS }}
+          EB_KEY_PASSWORD: ${{ secrets.EB_KEY_PASSWORD }}
 
       - name: APK size
         run: |
@@ -46,6 +64,27 @@ jobs:
           name: eventborg-release
           path: android/app/build/outputs/apk/release/*.apk
           retention-days: 14
+
+  release:
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: eventborg-release
+          path: apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mv "$(ls apk/*.apk | head -1)" eventborg.apk
+          sha256sum eventborg.apk > eventborg.apk.sha256
+          gh release create "$GITHUB_REF_NAME" eventborg.apk eventborg.apk.sha256 -R "$GITHUB_REPOSITORY" \
+            --title "EventBorg $GITHUB_REF_NAME" --generate-notes
 
   smoke:
     needs: build
@@ -73,6 +112,10 @@ jobs:
           target: google_apis
           disable-animations: true
           script: bash android/smoke.sh "$(ls apk/*.apk | head -1)" shots
+
+      - name: Timing
+        if: always()
+        run: if [ -f shots/timing.txt ]; then echo "Cold start (CI emulator): $(cat shots/timing.txt)" >> "$GITHUB_STEP_SUMMARY"; fi
 
       - uses: actions/upload-artifact@v7
         if: always()

@@ -100,6 +100,18 @@ sleep 5
 shot 15-feed-da
 tap text "Følger" && shot 16-watching-da
 
+# Cold start as installed users get it: compile with the baseline profile (written by ProfileInstaller on first run), then 3 starts.
+adb shell cmd locale set-app-locales app.eventborg --locales en
+adb shell cmd package compile -f -m speed-profile app.eventborg > /dev/null
+: > "$OUT/cold.txt"
+for _ in 1 2 3; do
+  adb shell am force-stop app.eventborg
+  sleep 2
+  adb shell am start -W -n app.eventborg/.MainActivity | sed -n 's/^TotalTime: //p' | tr -d '\r' >> "$OUT/cold.txt"
+  sleep 4
+done
+echo "first launch: $(sed -n 's/^TotalTime: //p' "$OUT/start.txt" | tr -d '\r') ms; compiled cold starts: $(tr '\n' ' ' < "$OUT/cold.txt")ms (median $(sort -n "$OUT/cold.txt" | sed -n 2p))" | tee "$OUT/timing.txt"
+
 adb logcat -d > "$OUT/logcat.txt"
 if grep -q "FATAL EXCEPTION" "$OUT/logcat.txt"; then
   grep -A30 "FATAL EXCEPTION" "$OUT/logcat.txt" | head -60

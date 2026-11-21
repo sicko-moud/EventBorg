@@ -41,3 +41,11 @@
 - [done] Story circles dim once tapped (seen), like Instagram. Value medium, cost low.
 - [done] "Add your event" also takes pasted text/links and a picked image (photo picker, no permission) into the same draft flow as sharing. Value high, cost low.
 - [M7] "New since last visit" dot on feed cards for events that arrived by push or since the last open. Value medium, cost low.
+
+## M6 — size, performance, setup
+- [done] Stable release signing in CI (keystore as an Actions secret): every CI APK so far was signed with a throwaway debug key, so installs could never update in place. Value high, cost low.
+- [done] GitHub Releases: a `v*` tag builds the signed APK and attaches it as `eventborg.apk`, so the README can link one fixed "latest" download. Value high, cost low.
+- [done] Keep-alive without commits: the pipeline re-enables its own workflow through the API once a day, which resets GitHub's 60-day inactivity timer. Value high, cost low.
+- [done] Smoke test measures cold start after profile compilation (3 runs, median in the job summary) next to the first-launch time. Value medium, cost low.
+- [done] App-code baseline profile + Graph stores (stories, watch list, topics) opened off the main thread. Value medium, cost low.
+- [ask] Google Play listing (one-time 25 USD developer fee) for auto-updates and reach; F-Droid is free but rejects Firebase. Value high, cost money.

@@ -37,8 +37,8 @@ android {
         applicationId = "app.eventborg"
         minSdk = 26
         targetSdk = 37
-        versionCode = 6
-        versionName = "0.5.0"
+        versionCode = 7
+        versionName = "0.6.0"
         buildConfigField("String", "DATA_URL", "\"https://sicko-moud.github.io/EventBorg/\"")
         buildConfigField("String", "WORKER_URL", "\"https://eventborg.eventborg-worker.workers.dev\"")
         buildConfigField("boolean", "FIREBASE", "${firebase != null}")
@@ -82,7 +82,7 @@ android {
 
     packaging {
         resources {
-            excludes += listOf("/META-INF/{AL2.0,LGPL2.1}", "DebugProbesKt.bin", "kotlin-tooling-metadata.json", "/META-INF/*.version")
+            excludes += listOf("/META-INF/{AL2.0,LGPL2.1}", "DebugProbesKt.bin", "kotlin-tooling-metadata.json", "/META-INF/*.version", "/kotlin/**")
         }
     }
 

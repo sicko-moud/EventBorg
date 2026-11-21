@@ -56,18 +56,20 @@ class Graph(app: App) {
     }
     val prefs = Prefs(app, scope)
     val api = Api { http }
-    val stories = Stories(app)
-    val watch = WatchStore(app)
+    // Stores that read a file on creation are opened on IO in start(); a caller that gets there first just waits for it.
+    val stories by lazy { Stories(app) }
+    val watch by lazy { WatchStore(app) }
     val repo = Repo(app, { http }, scope) { api.stories()?.let(stories::remote) }
-    val topics = Topics(prefs, watch.state, scope)
-    val notifier = Notifier(app)
-    val detector = Detector(this)
+    val topics by lazy { Topics(prefs, watch.state, scope) }
+    val notifier by lazy { Notifier(app) }
+    val detector by lazy { Detector(this) }
     val drafts = HashMap<String, Extract>()
 
     fun start() {
         repo.load()
-        topics.start()
         scope.launch(Dispatchers.IO) {
+            stories
+            topics.start()
             val listen = prefs.state.first { it.loaded }.listen
             runCatching { Listen.setEnabled(ctx, listen) }
             watch.prune()

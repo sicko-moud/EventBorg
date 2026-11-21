@@ -115,3 +115,10 @@
 - M5: Kotlin unit tests (JUnit 4, test scope only) for the link parser, story/group matcher, poster stripping and event heuristic; CI runs testDebugUnitTest (AGP 9 creates unit-test tasks for debug only) before assembleRelease.
 - M5: The feed's first list item (story strip + notification ask) always exists, possibly empty: LazyColumn keeps its position by key, so an item inserted above the first visible one later would open off-screen (found by the smoke test).
 - M5: Bottom-bar labels auto-shrink (12→9 sp) so the fifth tab fits "Indstillinger" in Danish.
+- M6: Release APKs are signed with one PKCS12 release key (RSA 4096, alias eventborg, SHA-256 92:85:D5:4B:…:93:3B) kept outside the repo in ~/.eventborg and as the CI secret EB_KEYSTORE_B64; forks fall back to the debug key, a release tag without the key fails. Earlier CI APKs (random debug keys) must be uninstalled once.
+- M6: Distribution through GitHub Releases: a `v*` tag builds the signed APK and attaches it as a fixed `eventborg.apk` (+ .sha256), so README's releases/latest/download link never changes. Google Play needs a paid developer account (asked, not done).
+- M6: Keep-alive: the pipeline calls the workflow "enable" API once a day (03 UTC hour, `actions: write`), which resets GitHub's 60-day inactivity timer without dummy commits.
+- M6: Baseline profile is a hand-written wildcard file (app code, kotlinx-serialization, OkHttp) next to the profiles Compose/AndroidX ship; a generated profile would need a macrobenchmark module and an emulator run per change for little gain on a 2 MB app.
+- M6: Graph opens stories, watch list, topics, notifier and detector lazily; start() touches them on IO so Application.onCreate does no file reads or JSON decoding on the main thread.
+- M6: `kotlin/**` metadata (reflection only) excluded from the APK; OkHttp's public-suffix list kept (asset exclusion is fiddly and only 42 KB).
+- M6: Smoke test reports first-launch time and the median of 3 cold starts after `cmd package compile -m speed-profile` (what installed users get once ART applies the profile).

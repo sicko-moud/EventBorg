@@ -23,6 +23,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
+  actions: write
   contents: write
   issues: write
 
@@ -33,6 +34,16 @@ jobs:
     timeout-minutes: 14
     steps:
       - uses: actions/checkout@v4
+
+      # GitHub disables a schedule after 60 days without repo activity; re-enabling the workflow resets that timer.
+      - name: Keep the schedule alive
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(date -u +%H)" = "03" ]; then
+            gh api -X PUT "repos/${{ github.repository }}/actions/workflows/pipeline.yml/enable" || echo "::warning::keep-alive call failed"
+          fi
 
       - uses: actions/setup-python@v5
         with:

@@ -1,0 +1,8 @@
+HSPLapp/eventborg/**->**(**)**
+Lapp/eventborg/**;
+HSPLkotlinx/serialization/json/**->**(**)**
+Lkotlinx/serialization/json/**;
+HSPLkotlinx/serialization/internal/**->**(**)**
+Lkotlinx/serialization/internal/**;
+HSPLokhttp3/**->**(**)**
+Lokhttp3/**;
