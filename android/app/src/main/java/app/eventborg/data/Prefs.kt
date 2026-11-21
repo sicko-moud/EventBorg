@@ -3,6 +3,7 @@ package app.eventborg.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
@@ -32,6 +33,7 @@ data class UserPrefs(
     val filter: Filter = Filter(),
     val notify: String = NOTIFY_ALL,
     val stories: String = NOTIFY_FAV,
+    val studentsFirst: Boolean = true,
 ) {
     val faves get() = Faves(saved, favCats, favSrcs)
 }
@@ -52,6 +54,7 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
                 filter = p[FILTER]?.let { runCatching { JsonFmt.decodeFromString(Filter.serializer(), it) }.getOrNull() } ?: Filter(),
                 notify = p[NOTIFY] ?: NOTIFY_ALL,
                 stories = p[STORIES] ?: NOTIFY_FAV,
+                studentsFirst = p[STUDENTS] ?: true,
             )
         }
         .stateIn(scope, SharingStarted.Eagerly, UserPrefs())
@@ -66,6 +69,7 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
     fun setFilter(f: Filter) = edit { it[FILTER] = JsonFmt.encodeToString(Filter.serializer(), f) }
     fun setNotify(v: String) = edit { it[NOTIFY] = v }
     fun setStories(v: String) = edit { it[STORIES] = v }
+    fun setStudentsFirst(v: Boolean) = edit { it[STUDENTS] = v }
 
     suspend fun subscribed(): Set<String> = ds.data.first()[TOPICS].orEmpty()
     suspend fun setSubscribed(topics: Set<String>) {
@@ -80,5 +84,6 @@ class Prefs(ctx: Context, private val scope: CoroutineScope) {
         val NOTIFY = stringPreferencesKey("notify")
         val STORIES = stringPreferencesKey("stories")
         val TOPICS = stringSetPreferencesKey("topics")
+        val STUDENTS = booleanPreferencesKey("students_first")
     }
 }

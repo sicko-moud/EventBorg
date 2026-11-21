@@ -52,6 +52,11 @@ fun SettingsScreen() {
 
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_settings)) }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+            Heading(stringResource(R.string.set_feed))
+            SwitchRow(stringResource(R.string.set_students), prefs.studentsFirst, stringResource(R.string.set_students_hint)) {
+                g.prefs.setStudentsFirst(it)
+            }
+
             Heading(stringResource(R.string.set_events))
             Radios(
                 prefs.notify,

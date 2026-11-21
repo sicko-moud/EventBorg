@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -119,7 +122,7 @@ fun EventCard(ev: Ev, section: Section?, saved: Boolean, onSave: () -> Unit, onC
             Spacer(Modifier.height(4.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                 StatusTag(ev)
-                Tag(stringResource(catLabel(e.c)))
+                Tag((if (ev.student && e.c != "students") "🎓 " else "") + stringResource(catLabel(e.c)))
                 priceText(ctx, e)?.let {
                     Tag(it, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -136,6 +139,46 @@ fun EventCard(ev: Ev, section: Section?, saved: Boolean, onSave: () -> Unit, onC
             }
         }
         StarButton(saved, R.string.unsave, R.string.save, onSave)
+    }
+}
+
+@Composable
+fun StudentRow(list: List<Ev>, open: (String) -> Unit, seeAll: () -> Unit) {
+    val ctx = LocalContext.current
+    val locale = uiLocale()
+    Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+        Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.for_students),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f).semantics { heading() },
+            )
+            TextButton(onClick = seeAll) { Text(stringResource(R.string.see_all)) }
+        }
+        LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(list, key = { it.id }) { ev ->
+                Column(Modifier.width(168.dp).clip(RoundedCornerShape(12.dp)).clickable { open(ev.id) }) {
+                    Thumb(ev, Modifier.fillMaxWidth().height(96.dp).clip(RoundedCornerShape(12.dp)))
+                    Text(
+                        ev.e.t,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 6.dp),
+                    )
+                    Text(
+                        listOfNotNull(cardWhen(ctx, ev, null, locale), ev.e.v?.town).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 4.dp),
+                    )
+                }
+            }
+        }
     }
 }
 

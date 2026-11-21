@@ -103,6 +103,7 @@ fun FilterSheet(f: Filter, data: Data, onChange: (Filter) -> Unit, onDismiss: ()
             Heading(stringResource(R.string.f_more))
             SwitchRow(stringResource(R.string.f_free), f.free) { onChange(f.copy(free = it)) }
             SwitchRow(stringResource(R.string.f_fav), f.fav) { onChange(f.copy(fav = it)) }
+            SwitchRow(stringResource(R.string.f_students), f.stu) { onChange(f.copy(stu = it)) }
 
             Heading(stringResource(R.string.f_town))
             Choice(f.town, towns.associateWith { it }, stringResource(R.string.f_all_towns)) { onChange(f.copy(town = it)) }

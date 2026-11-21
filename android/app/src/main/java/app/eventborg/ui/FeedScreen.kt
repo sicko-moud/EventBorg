@@ -63,6 +63,7 @@ import app.eventborg.data.matchesFilter
 import app.eventborg.data.matchesQuery
 import app.eventborg.data.queryTokens
 import app.eventborg.data.sectioned
+import app.eventborg.data.studentPicks
 import app.eventborg.graph
 
 @Composable
@@ -97,6 +98,7 @@ fun FeedScreen(open: (String) -> Unit) {
         }
         sectioned(list, now.toLocalDate())
     }
+    val picks = remember(data, now, prefs.studentsFirst) { if (prefs.studentsFirst) studentPicks(data.events, now) else emptyList() }
 
     Scaffold(
         topBar = {
@@ -109,7 +111,7 @@ fun FeedScreen(open: (String) -> Unit) {
             modifier = Modifier.padding(pad).fillMaxSize(),
         ) {
             LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                item("quick") { QuickChips(f) { g.prefs.setFilter(it) } }
+                item("quick") { QuickChips(f, prefs.studentsFirst) { g.prefs.setFilter(it) } }
                 val problem = status.problem
                 if (problem != null && data.events.isNotEmpty()) {
                     item("banner") {
@@ -143,12 +145,19 @@ fun FeedScreen(open: (String) -> Unit) {
                             g.prefs.setFilter(Filter())
                         }
                     }
-                    else -> sections.forEach { (sec, list) ->
-                        stickyHeader(key = "h_${sec.name}", contentType = "header") {
-                            SectionHeader(sectionLabel(sec) + "  ·  " + list.size)
+                    else -> {
+                        if (picks.isNotEmpty() && f.active == 0 && tokens.isEmpty()) {
+                            item("students", contentType = "students") {
+                                StudentRow(picks, open) { g.prefs.setFilter(Filter(stu = true)) }
+                            }
                         }
-                        items(list, key = { it.id }, contentType = { "event" }) { ev ->
-                            EventCard(ev, sec, ev.id in prefs.saved, { g.prefs.toggleSaved(ev.id) }) { open(ev.id) }
+                        sections.forEach { (sec, list) ->
+                            stickyHeader(key = "h_${sec.name}", contentType = "header") {
+                                SectionHeader(sectionLabel(sec) + "  ·  " + list.size)
+                            }
+                            items(list, key = { it.id }, contentType = { "event" }) { ev ->
+                                EventCard(ev, sec, ev.id in prefs.saved, { g.prefs.toggleSaved(ev.id) }) { open(ev.id) }
+                            }
                         }
                     }
                 }
@@ -191,17 +200,20 @@ private fun SearchBar(query: String, onQuery: (String) -> Unit, active: Int, onF
 }
 
 @Composable
-private fun QuickChips(f: Filter, set: (Filter) -> Unit) {
+private fun QuickChips(f: Filter, studentsFirst: Boolean, set: (Filter) -> Unit) {
     fun date(d: String) = set(f.copy(date = if (f.date == d) DATE_ANY else d, from = null, to = null))
+    val students = @Composable { FilterChip(f.stu, { set(f.copy(stu = !f.stu)) }, { Text(stringResource(R.string.q_students)) }) }
     Row(
         Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        if (studentsFirst) students()
         FilterChip(f.date == DATE_NOW, { date(DATE_NOW) }, { Text(stringResource(R.string.q_now)) })
         FilterChip(f.date == DATE_TONIGHT, { date(DATE_TONIGHT) }, { Text(stringResource(R.string.q_tonight)) })
         FilterChip(f.date == DATE_WEEKEND, { date(DATE_WEEKEND) }, { Text(stringResource(R.string.q_weekend)) })
         FilterChip(f.free, { set(f.copy(free = !f.free)) }, { Text(stringResource(R.string.free)) })
         FilterChip(f.fav, { set(f.copy(fav = !f.fav)) }, { Text(stringResource(R.string.q_fav)) })
+        if (!studentsFirst) students()
     }
 }
 

@@ -12,6 +12,13 @@
     <string name="q_tonight">I aften</string>
     <string name="q_weekend">I weekenden</string>
     <string name="q_fav">Favoritter</string>
+    <string name="q_students">Studerende</string>
+    <string name="for_students">🎓 For studerende</string>
+    <string name="see_all">Se alle</string>
+    <string name="f_students">Kun arrangementer for studerende</string>
+    <string name="set_feed">Forside</string>
+    <string name="set_students">Studenterarrangementer først</string>
+    <string name="set_students_hint">Viser de næste to ugers arrangementer for studerende (SDU, IDA, studenterforeninger) øverst på forsiden og sætter Studerende-knappen først.</string>
     <string name="free">Gratis</string>
 
     <string name="sec_today">I dag</string>

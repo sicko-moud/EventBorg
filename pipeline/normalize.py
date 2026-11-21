@@ -134,6 +134,8 @@ def to_event(raw: dict, src: dict, aliases: dict) -> dict | None:
     v = _clean_venue(raw.get("venue"), src, aliases)
     desc = scrub(html_to_text(raw.get("desc")))[:1500] or None
     tags = [t for t in (clean_line(x) for x in raw.get("tags") or []) if t]
+    if src.get("audience"):
+        tags.append(src["audience"])
     if _SOLD_OUT.search(title + " " + str(raw.get("price") or "")):
         tags.append("sold_out")
     url = raw.get("url") or (None if raw.get("generic") else raw.get("src_url"))

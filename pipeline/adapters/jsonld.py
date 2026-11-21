@@ -114,6 +114,7 @@ def _price(offers):
                 continue
             if n > 0:
                 nums.append(n)
+    nums = [int(n) if n.is_integer() else n for n in nums]
     return {"free": False, "min": min(nums), "max": max(nums)} if nums else None
 
 
@@ -131,7 +132,17 @@ def _status(s) -> str | None:
     return None
 
 
-def parse_event(n: dict, page: str) -> dict | None:
+def _cats(n: dict, keys) -> list[str]:
+    out = []
+    for k in keys:
+        v = n.get(k)
+        for x in v if isinstance(v, list) else [v]:
+            if isinstance(x, str):
+                out += [p.strip() for p in re.split(r"[|,]", x) if p.strip()]
+    return list(dict.fromkeys(out))
+
+
+def parse_event(n: dict, page: str, cats=()) -> dict | None:
     title, start = clean_line(n.get("name")), n.get("startDate")
     if not title or not start:
         return None
@@ -153,10 +164,11 @@ def parse_event(n: dict, page: str) -> dict | None:
         "status": _status(n.get("eventStatus")),
         "age": n.get("typicalAgeRange"),
         "lang": n.get("inLanguage") if isinstance(n.get("inLanguage"), str) else None,
+        "cats": _cats(n, cats),
     }
 
 
-def from_html(html: str, page: str) -> list[dict]:
+def from_html(html: str, page: str, cats=()) -> list[dict]:
     out = []
     for block in _LD.findall(html):
         try:
@@ -164,7 +176,7 @@ def from_html(html: str, page: str) -> list[dict]:
         except ValueError:
             continue
         for n in _walk(data):
-            e = parse_event(n, page)
+            e = parse_event(n, page, cats)
             if e:
                 out.append(e)
     return out

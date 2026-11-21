@@ -6,17 +6,17 @@ from .text import fold
 SOURCE_RULES = [
     (r"debat|foredrag|talk|lecture|oplaesning|literatur|litteratur", "talks_learning"),
     (r"koncert|musik|music|jazz|rock|pop|klassisk|kor\b", "music"),
+    (r"sport|motion|idraet", "sports"),
     (r"teater|theatre|comedy|arts|film|show|musical|opera|ballet|dans", "theatre_culture"),
     (r"udstilling|kunst|exhibition|krea|museum", "exhibitions"),
     (r"famil|born|kids|children", "family_kids"),
-    (r"sport|motion|idraet", "sports"),
     (r"natur|outdoor|friluft", "outdoor_nature"),
     (r"marked|market|shopping", "markets"),
     (r"mad|food|gastro", "food_drink"),
     (r"festival", "festivals"),
     (r"erhverv|business|job", "business"),
-    (r"uddannelse|student|studie", "students"),
-    (r"unge|ungdom|youth|nightlife|natteliv", "nightlife"),
+    (r"uddannelse|student|studie|studerende", "students"),
+    (r"nightlife|natteliv", "nightlife"),
     (r"forening|faellesskab|borgermode|tilflytter|frivillig|community", "community"),
 ]
 
@@ -38,7 +38,9 @@ TEXT_RULES = [
     (r"frivillig|forening|faellesspisning|borgermode|cafe for|tilflytter|newcomer|velkomst|generalforsamling|gudstjeneste|\bmesse\b", "community"),
 ]
 
-TAG_RULES = [(r"\bjul|christmas|advent|nisse", "christmas"), (r"\bunge\b|\bung\b|15-30|youth", "youth")]
+# Student events get this tag whatever their category; the app ranks them first for students.
+STUDENT = r"\bstudents?\b|studerende|studenter|studieevent|studiestart|\bsdu\b|fredagsbar|friday bar|\bida student"
+TAG_RULES = [(r"\bjul|christmas|advent|nisse", "christmas"), (r"\bunge\b|\bung\b|15-30|youth", "youth"), (STUDENT, "students")]
 
 _SRC = [(re.compile(p), c) for p, c in SOURCE_RULES]
 _TXT = [(re.compile(p), c) for p, c in TEXT_RULES]

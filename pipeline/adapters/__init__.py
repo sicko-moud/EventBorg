@@ -22,7 +22,7 @@ class Ctx:
 
 
 def get_adapter(kind: str):
-    from . import html_llm, ical, jsonld, ticketmaster, tribe
+    from . import html_llm, ical, jsonld, sitemap, ticketmaster, tribe
 
     return {"tribe": tribe.fetch, "ical": ical.fetch, "jsonld": jsonld.fetch,
-            "html_llm": html_llm.fetch, "ticketmaster": ticketmaster.fetch}.get(kind)
+            "html_llm": html_llm.fetch, "ticketmaster": ticketmaster.fetch, "sitemap": sitemap.fetch}.get(kind)

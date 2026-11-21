@@ -145,3 +145,62 @@ def test_parse_dt_and_status_and_location():
     assert detect_status("Julekoncert", "moved") == ("Julekoncert", "moved")
     assert split_location("Mejeriet, Løngang 2, 6400 Sønderborg")["town"] == "Sønderborg"
     assert scrub("Tilmelding: 20 30 40 50 eller x@y.dk Start 2026-11-21 kl. 19.30") == "Tilmelding: eller Start 2026-11-21 kl. 19.30"
+
+
+class _Resp:
+    def __init__(self, text):
+        self.text = text
+
+
+class _FakeHttp:
+    def __init__(self, pages):
+        self.pages, self.calls = pages, []
+
+    def get(self, url, **kw):
+        self.calls.append(url)
+        return _Resp(self.pages[url])
+
+
+def _ida_page(n, town, zip_, start="2026-12-02T16:00:00.000Z", org="Sønderborg studieevents"):
+    return ('<script type="application/ld+json">{"@type":"Event","name":"%s","startDate":"%s",'
+            '"location":{"@type":"Place","name":"Alsion","address":{"addressLocality":"%s","postalCode":"%s"}},'
+            '"ida-meetup:organizers":"Kurser for studerende|%s","ida-meetup:activityType":"Socialt og kulturelt"}</script>'
+            % (n, start, town, zip_, org))
+
+
+def test_sitemap_incremental_local_only():
+    from pipeline.adapters import Ctx, sitemap
+    base = "https://ida.dk/arrangementer-og-kurser/arrangementer/"
+    sm = "".join(f"<url><loc>{u}</loc></url>" for u in [
+        base + "bowling-sonderborg-101", base + "film-esbjerg-205", "https://ida.dk/en/arrangementer-og-kurser/arrangementer/x-300",
+        base + "old-sonderborg-150", "https://ida.dk/other/page"])
+    pages = {"https://x/sitemap.xml": sm, base + "bowling-sonderborg-101": _ida_page("Bowling", "Sønderborg", "6400"),
+             base + "film-esbjerg-205": _ida_page("Film", "Esbjerg", "6700"),
+             base + "old-sonderborg-150": _ida_page("Old", "Sønderborg", "6400", start="2026-01-01T10:00:00Z")}
+    src = {"id": "ida", "sitemap": "https://x/sitemap.xml", "match": "ida.dk/arrangementer-og-kurser/arrangementer/",
+           "skip": ["/en/"], "cats": ["ida-meetup:organizers", "ida-meetup:activityType"], "budget": 2}
+    now, st = datetime(2026, 11, 21, 12, tzinfo=TZ), {}
+    http = _FakeHttp(pages)
+    assert sitemap.fetch(src, Ctx(http, None, now, st)) == []
+    assert http.calls[1:] == [base + "film-esbjerg-205", base + "old-sonderborg-150"]
+    assert st["quiet"] and not st["filled"] and st["pages"][base + "film-esbjerg-205"] == {"ts": "2026-11-21T12:00+01:00"}
+
+    st.pop("quiet")
+    http.calls.clear()
+    out = sitemap.fetch(src, Ctx(http, None, now, st))
+    assert http.calls[1:] == [base + "bowling-sonderborg-101"] and st["quiet"] and st["filled"]
+    assert [e["title"] for e in out] == ["Bowling"]
+    assert out[0]["cats"] == ["Kurser for studerende", "Sønderborg studieevents", "Socialt og kulturelt"]
+
+    st.pop("quiet")
+    http.calls.clear()
+    sitemap.fetch(src, Ctx(http, None, now, st))
+    assert http.calls[1:] == [] and "quiet" not in st
+    later, _ = datetime(2026, 11, 22, 12, tzinfo=TZ), http.calls.clear()
+    sitemap.fetch(src, Ctx(http, None, later, st))
+    assert http.calls[1:] == [base + "bowling-sonderborg-101"]
+
+
+def test_audience_tag():
+    e = to_event({"title": "Board games", "start": "2026-12-01T19:00"}, {**SRC, "audience": "students"}, {})
+    assert e["tags"] == ["students"]

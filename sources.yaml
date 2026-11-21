@@ -1,4 +1,5 @@
-# Verified 2026-11-21. type: tribe | ical | jsonld | html_llm | ticketmaster | none (social only)
+# Verified 2026-11-21. type: tribe | ical | jsonld | sitemap | html_llm | ticketmaster | none (social only)
+# audience: students tags every event from the source (the app ranks student events first).
 # every: minutes between fetches. local: events without a usable location are assumed to be in the municipality.
 sources:
   - id: sonderborg-dk
@@ -251,6 +252,119 @@ sources:
     town: Broager
     fb: https://www.facebook.com/Cathrinesminde.dk
     names: [Cathrinesminde Teglværk, Cathrinesminde]
+
+  # IDA (Danish Society of Engineers): national calendar, only events located in the municipality are kept.
+  # Student events come from organisers such as "Sønderborg studieevents" / "Kurser for studerende".
+  - id: ida
+    name: IDA – Ingeniørforeningen
+    type: sitemap
+    url: https://ida.dk/arrangementer-og-kurser
+    sitemap: https://meetup-events-ui.ida.dk/sitemap.xml
+    match: ida.dk/arrangementer-og-kurser/arrangementer/
+    skip: [/en/]
+    cats: [ida-meetup:organizers, ida-meetup:activityType]
+    budget: 120
+    kind: organizer
+    every: 120
+    names: [IDA Syd, IDA Sønderjylland]
+
+  # SDU Sønderborg student associations (from mitsdu.dk "Associations at SDU Sønderborg", checked 2026-11-21).
+  # No public calendars: social-only, used for story alerts, watch-list suggestions and Instagram post polling.
+  - id: cafeen-sdu
+    name: Caféen – SDU Sønderborg
+    type: none
+    kind: venue
+    town: Sønderborg
+    audience: students
+    fb: https://www.facebook.com/cafeensonderborg
+    names: [Caféen Sønderborg, Caféen SDU]
+
+  - id: student-council-sonderborg
+    name: Student Council SDU Sønderborg
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    fb: https://www.facebook.com/studentcouncilsonderborg
+    names: [Student Council SDU Sønderborg, Student Council Sønderborg]
+
+  - id: sdu-sport-sonderborg
+    name: SDU Sport Sønderborg
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: sdusportsonderborg
+    fb: https://www.facebook.com/sdusportsonderborg
+    names: [SDU Sport Sønderborg]
+
+  - id: sonderborg-ung
+    name: Sønderborg Ung
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: sonderborg.ung
+    names: [Sønderborg Ung]
+
+  - id: sdu-music
+    name: SDU Music
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: sdu_music
+    fb: https://www.facebook.com/people/SDU-Music/100094050665112/
+    names: [SDU Music]
+
+  - id: mun-sonderborg
+    name: MUN at SDU Sønderborg
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: mun_sonderborg
+    fb: https://www.facebook.com/profile.php?id=61587634114757
+    names: [MUN Sønderborg, MUN at SDU]
+
+  - id: the-arc
+    name: The Als Rocketry Club
+    type: none
+    url: https://the-arc.dk/
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: the.arc.rocket
+    fb: https://www.facebook.com/the.arc.rocket
+    names: [The Als Rocketry Club, The ARC]
+
+  - id: drone-construction-club
+    name: Drone Construction Club
+    type: none
+    url: https://www.droneconstructionclub.com/
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: droneconstructionclub
+    names: [Drone Construction Club]
+
+  - id: obelisk-sdu
+    name: Obelisk Software Club
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: obelisk_sdu
+    names: [Obelisk Software Club, Obelisk SDU]
+
+  - id: tengoku-sdu
+    name: Tengoku Club
+    type: none
+    kind: organizer
+    town: Sønderborg
+    audience: students
+    ig: tengoku_sdu
+    names: [Tengoku Club, Tengoku SDU]
 
   - id: ticketmaster
     name: Ticketmaster

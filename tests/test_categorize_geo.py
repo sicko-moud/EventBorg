@@ -38,3 +38,11 @@ def test_municipality():
     outside = [(55.044, 9.418), (54.79, 9.43), (54.863, 9.588), (54.84, 9.47), (55.25, 9.49)]
     assert all(in_municipality({"lat": a, "lng": b}) for a, b in inside)
     assert not any(in_municipality({"lat": a, "lng": b}) for a, b in outside)
+
+
+def test_student_tag_and_category():
+    assert cat("Bowling night", ["Kurser for studerende", "Sønderborg studieevents"]) == "students"
+    assert cat("Calling all students! Get wet and eat pizza", ["Unge 15-30 år", "Sport, dans og vandringer"]) == "sports"
+    assert sorted(rule_tags({"t": "Calling all students! Pizza", "_cats": ["Unge 15-30 år"]})) == ["students", "youth"]
+    assert rule_tags({"t": "Bowling", "_cats": ["Sønderborg studieevents"]}) == ["students"]
+    assert rule_tags({"t": "Studieliv", "_cats": []}) == []

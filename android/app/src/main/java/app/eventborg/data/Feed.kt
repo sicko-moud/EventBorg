@@ -17,6 +17,7 @@ class Ev(val e: Event, val start: ZonedDateTime, val end: ZonedDateTime, val key
     val id get() = e.id
     val long = ChronoUnit.DAYS.between(start.toLocalDate(), end.minusSeconds(1).toLocalDate()) > 3
     val cancelled get() = e.st == "cancelled"
+    val student = e.c == "students" || "students" in e.tags
 }
 
 private fun parseTime(s: String?): ZonedDateTime? =
@@ -66,9 +67,10 @@ data class Filter(
     val town: String? = null,
     val source: String? = null,
     val fav: Boolean = false,
+    val stu: Boolean = false,
 ) {
     val active: Int
-        get() = listOf(cats.isNotEmpty(), date != DATE_ANY, free, town != null, source != null, fav).count { it }
+        get() = listOf(cats.isNotEmpty(), date != DATE_ANY, free, town != null, source != null, fav, stu).count { it }
 }
 
 const val DATE_ANY = "any"
@@ -113,11 +115,18 @@ fun matchesFilter(ev: Ev, f: Filter, faves: Faves, range: Pair<ZonedDateTime, Zo
     if (f.town != null && ev.e.v?.town != f.town) return false
     if (f.source != null && ev.e.src.none { it.id == f.source }) return false
     if (f.fav && !faves.has(ev)) return false
+    if (f.stu && !ev.student) return false
     if (range != null) {
         if (ev.long && f.date in setOf(DATE_NOW, DATE_TONIGHT)) return false
         if (!(ev.start < range.second && ev.end > range.first)) return false
     }
     return true
+}
+
+// Student events of the next two weeks, for the row pinned above the feed.
+fun studentPicks(events: List<Ev>, now: ZonedDateTime): List<Ev> {
+    val until = now.plusDays(14)
+    return events.filter { it.student && !it.cancelled && it.end.isAfter(now) && it.start.isBefore(until) }.take(12)
 }
 
 enum class Section { TODAY, TOMORROW, WEEK, WEEKEND, NEXT_WEEK, LATER, ONGOING }

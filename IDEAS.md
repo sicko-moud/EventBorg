@@ -27,3 +27,10 @@
 - [done] Source page: tap a source to see its links (web/IG/FB), star it and its upcoming events. Value medium, cost low.
 - [done] Search folds Danish spellings both ways (ø/oe→o, æ→ae, å/aa→a, accents stripped). Value medium, cost low.
 - [M7] Map view of today's events by venue (needs the M7 geocoding table). Value medium, cost medium.
+
+## Students (ad hoc, 2026-11-21)
+- [done] IDA events in the municipality (incremental sitemap crawl, student organisers tagged). Value high, cost medium.
+- [done] Student priority: "For students" row, Students chip first, 🎓 card mark, filter, setting. Value high, cost low.
+- [done] SDU Sønderborg student associations as social sources (story alerts, IG polling). Value medium, cost low.
+- [M7] SDU "Studiestart"/intro-week programme as a yearly html_llm source once SDU publishes a public page for it. Value medium, cost low.
+- [M7] Push for student events even in "Favourites only" mode when "Student events first" is on (topic tag_students). Value medium, cost low.

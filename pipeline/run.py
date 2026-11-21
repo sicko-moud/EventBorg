@@ -76,7 +76,7 @@ def fetch_source(src: dict, st: dict, state: State, ctx_args: tuple) -> bool:
         raws = fn(src, Ctx(http, llm, now, st))
         state.raw[src["id"]] = raws
         st.update(st="ok", ok=now.isoformat(timespec="seconds"), err=None, fails=0)
-        first = not st.get("ingested")
+        first = not st.get("ingested") or bool(st.pop("quiet", False))
         st["ingested"] = True
     except Skip as e:
         st.update(st=e.code, err=None)
