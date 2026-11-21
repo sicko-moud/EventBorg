@@ -1,0 +1,60 @@
+name: pipeline
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  repository_dispatch:
+    types: [inbox]
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Ignore per-source refresh intervals"
+        type: boolean
+        default: false
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Restore data branch
+        run: |
+          mkdir -p out
+          if git fetch --depth 1 origin data; then git archive FETCH_HEAD | tar -x -C out; fi
+
+      - name: Run pipeline
+        id: pipeline
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-flash-latest' }}
+          GEMINI_FALLBACK_MODEL: ${{ vars.GEMINI_FALLBACK_MODEL || 'gemini-flash-lite-latest' }}
+          LLM_MAX_CALLS: ${{ vars.LLM_MAX_CALLS || '25' }}
+          TICKETMASTER_KEY: ${{ secrets.TICKETMASTER_KEY }}
+          CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+        run: python -m pipeline run --out out ${{ inputs.force && '--force' || '' }}
+
+      - name: Publish data branch
+        if: steps.pipeline.outputs.publish == 'true'
+        working-directory: out
+        run: |
+          git init -q -b data
+          git add -A
+          git -c user.name="eventborg-bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "data $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data

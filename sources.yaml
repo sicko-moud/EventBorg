@@ -1,0 +1,314 @@
+# Verified 2026-11-21. type: tribe | ical | jsonld | html_llm | ticketmaster | none (social only)
+# every: minutes between fetches. local: events without a usable location are assumed to be in the municipality.
+sources:
+  - id: sonderborg-dk
+    name: Sønderborg Kommune – Begivenheder
+    type: tribe
+    url: https://sonderborg.dk
+    kind: organizer
+    local: true
+    every: 60
+    ig: sonderborgkommune
+    fb: https://www.facebook.com/sonderborgkommune
+    names: [Sønderborg Kommune]
+
+  - id: koncertsalen-alsion
+    name: Koncertsalen Alsion
+    type: jsonld
+    url: https://koncertsalenalsion.dk/
+    follow: /event/
+    kind: venue
+    town: Sønderborg
+    venue: Koncertsalen Alsion
+    local: true
+    every: 180
+    names: [Koncertsalen Alsion, Alsion]
+
+  - id: sdjsymfoni
+    name: Sønderjyllands Symfoniorkester
+    type: jsonld
+    url: https://sdjsymfoni.dk/
+    kind: organizer
+    every: 360
+    ig: sdjsymfoni
+    fb: https://www.facebook.com/symfoniorkestret
+    names: [Sønderjyllands Symfoniorkester, Symfoniorkestret]
+
+  - id: sonderborghus
+    name: Sønderborghus
+    type: html_llm
+    url: https://sonderborghus.dk/arrangementer/
+    kind: venue
+    town: Sønderborg
+    venue: Sønderborghus
+    local: true
+    every: 360
+    ig: sonderborghus
+    fb: https://www.facebook.com/Sonderborghus
+    names: [Sønderborghus]
+
+  - id: mejeriet
+    name: Mejeriet
+    type: none
+    kind: venue
+    town: Sønderborg
+    names: [Mejeriet]
+
+  - id: biblioteket
+    name: Biblioteket Sønderborg
+    type: html_llm
+    url: https://biblioteket.sonderborg.dk/arrangementer
+    kind: venue
+    town: Sønderborg
+    local: true
+    every: 360
+    ig: biblioteketsoenderborg
+    fb: https://www.facebook.com/bibsdb
+    names: [Biblioteket Sønderborg, Sønderborg Bibliotek]
+
+  - id: sonderborg-slot
+    name: Sønderborg Slot
+    type: html_llm
+    url: https://msj.dk/soenderborg-slot/
+    kind: venue
+    town: Sønderborg
+    venue: Sønderborg Slot
+    local: true
+    every: 720
+    ig: sonderborgslot
+    fb: https://www.facebook.com/soenderborgslot
+    names: [Sønderborg Slot]
+
+  - id: dybbol-banke
+    name: Historiecenter Dybbøl Banke
+    type: html_llm
+    url: https://1864.dk/da/planlaeg-dit-besoeg/dagsprogram/
+    kind: venue
+    town: Dybbøl
+    venue: Historiecenter Dybbøl Banke
+    local: true
+    every: 720
+    ig: historiecenterdybbolbanke
+    fb: https://www.facebook.com/historiecenterdybboelbanke
+    names: [Historiecenter Dybbøl Banke, Dybbøl Banke]
+
+  - id: sonderborg-teater
+    name: Sønderborg Teater
+    type: html_llm
+    url: https://sonderborgteater.dk/da/
+    kind: venue
+    town: Sønderborg
+    venue: Sønderborg Teater
+    local: true
+    every: 360
+    fb: https://www.facebook.com/sonderborgteater
+    names: [Sønderborg Teater]
+
+  - id: universe
+    name: Universe Science Park
+    type: html_llm
+    url: https://universe.dk/oplevelser/events/
+    kind: venue
+    town: Nordborg
+    venue: Universe
+    local: true
+    every: 720
+    names: [Universe, Universe Science Park]
+
+  - id: nordborghus
+    name: Nordborghus
+    type: html_llm
+    url: https://nordborghus.dk/arrangementer/
+    kind: venue
+    town: Nordborg
+    venue: Nordborghus
+    local: true
+    every: 720
+    names: [Nordborghus]
+
+  - id: brinckmanns
+    name: Brinckmanns Jazzbar
+    type: html_llm
+    url: https://brinckmannsjazzbar.dk/
+    kind: venue
+    town: Sønderborg
+    venue: Brinckmanns Jazzbar
+    local: true
+    every: 360
+    ig: brinckmannsjazzbar
+    names: [Brinckmanns Jazzbar, Brinckmanns]
+
+  - id: sergenten
+    name: Sergenten
+    type: html_llm
+    url: https://sergenten.dk/kalender
+    kind: venue
+    town: Sønderborg
+    venue: Sergenten
+    local: true
+    every: 360
+    ig: sergenten_soenderborg
+    fb: https://www.facebook.com/Sergenten6400
+    names: [Sergenten]
+
+  - id: skansen
+    name: Sydjysk Sparekasse Skansen
+    type: html_llm
+    url: https://www.skansehallerne.dk/
+    kind: venue
+    town: Sønderborg
+    venue: Sydjysk Sparekasse Skansen
+    local: true
+    every: 720
+    names: [Sydjysk Sparekasse Skansen, Skansen]
+
+  - id: musikskolen
+    name: Sønderborg Musikskole
+    type: html_llm
+    url: https://sonderborgmusikskole.dk/praktisk-info/koncertkalender/
+    kind: organizer
+    town: Sønderborg
+    local: true
+    every: 720
+    ig: sonderborgmusikskole
+    names: [Sønderborg Musikskole, Musikskolen]
+
+  - id: augustiana
+    name: Augustiana Kunstpark & Kunsthal
+    type: html_llm
+    url: https://augustiana.dk/events/
+    kind: venue
+    town: Augustenborg
+    venue: Augustiana Kunstpark & Kunsthal
+    local: true
+    every: 720
+    ig: augustiana.dk
+    fb: https://www.facebook.com/augustiana.dk
+    names: [Augustiana]
+
+  - id: den-gamle-kro
+    name: Den Gamle Kro Gråsten
+    type: html_llm
+    url: https://1747.dk/kalender/
+    kind: business
+    town: Gråsten
+    venue: Den Gamle Kro
+    local: true
+    every: 720
+    ig: dengamlekro_graasten
+    fb: https://www.facebook.com/dengamlekrohotelegely
+    names: [Den Gamle Kro]
+
+  - id: hotel-sonderborg-strand
+    name: Hotel Sønderborg Strand
+    type: html_llm
+    url: https://sonderborgstrand.dk/da/Arrangementer-p%C3%A5-hotellet
+    kind: business
+    town: Sønderborg
+    venue: Hotel Sønderborg Strand
+    local: true
+    every: 720
+    ig: hotelsonderborgstrand
+    names: [Hotel Sønderborg Strand]
+
+  - id: ringriderfesten
+    name: Ringriderfesten Sønderborg
+    type: html_llm
+    url: https://www.ringriderfesten.dk/program
+    kind: organizer
+    town: Sønderborg
+    local: true
+    every: 1440
+    ig: ringriderfesten
+    fb: https://www.facebook.com/ringridning
+    names: [Ringriderfesten, Sønderborg Ringriderforening]
+
+  - id: graasten-ringridning
+    name: Gråsten Ringridning
+    type: html_llm
+    url: https://www.graastenringridning.dk/program/
+    kind: organizer
+    town: Gråsten
+    local: true
+    every: 1440
+    fb: https://www.facebook.com/graastenringriderforening
+    names: [Gråsten Ringridning, Gråsten Ringriderforening]
+
+  - id: kulturisyd
+    name: Kultur i Syd
+    type: html_llm
+    url: https://kulturisyd.dk/arrangementer/
+    kind: organizer
+    every: 360
+    ig: kulturisyd
+    fb: https://www.facebook.com/kulturisyd
+    names: [Kultur i Syd]
+
+  - id: cathrinesminde
+    name: Cathrinesminde Teglværk
+    type: none
+    kind: venue
+    town: Broager
+    fb: https://www.facebook.com/Cathrinesminde.dk
+    names: [Cathrinesminde Teglværk, Cathrinesminde]
+
+  - id: ticketmaster
+    name: Ticketmaster
+    type: ticketmaster
+    kind: business
+    lat: 54.9094
+    lng: 9.7923
+    radius: 25
+    every: 120
+
+# Canonical venue names. Aliases are matched case- and accent-insensitively.
+venues:
+  - n: Koncertsalen Alsion
+    town: Sønderborg
+    addr: Alsion 2, 6400 Sønderborg
+    aliases: [Koncertsalen i Alsion, Koncertsalen, Alsion Koncertsal]
+  - n: Sønderborghus
+    town: Sønderborg
+    aliases: [Sønderborg Hus, Spillestedet Sønderborghus]
+  - n: Mejeriet
+    town: Sønderborg
+    aliases: [Mejeriet Sønderborg, Mejeriet i Sønderborg]
+  - n: Sønderborg Slot
+    town: Sønderborg
+    aliases: [Sønderborg Castle, Sonderborg Castle]
+  - n: Sct. Marie Kirke
+    town: Sønderborg
+    aliases: [Sankt Marie Kirke, St. Marie Kirke, "Sct. Marie Kirke, Sønderborg"]
+  - n: Biblioteket Sønderborg
+    town: Sønderborg
+    aliases: [Sønderborg Bibliotek, Sønderborg Bibliotekerne]
+  - n: Sydjysk Sparekasse Skansen
+    town: Sønderborg
+    aliases: [Skansen, Broager Sparekasse Skansen, Skansehallerne]
+  - n: Historiecenter Dybbøl Banke
+    town: Dybbøl
+    aliases: [Dybbøl Banke, 1864 Historiecenter]
+  - n: Augustiana Kunstpark & Kunsthal
+    town: Augustenborg
+    aliases: [Augustiana, Augustiana Kunstpark + Kunsthal]
+  - n: Den Gamle Kro
+    town: Gråsten
+    aliases: [Den Gamle Kro Gråsten]
+  - n: Universe
+    town: Nordborg
+    aliases: [Universe Science Park, Danfoss Universe]
+  - n: Nordborghus
+    town: Nordborg
+    aliases: [Medborgerhuset Nordborghus]
+  - n: Broagerhus
+    town: Broager
+    aliases: [Broagerhuset]
+  - n: Sønderborg Teater
+    town: Sønderborg
+    aliases: [Sønderborg Theater]
+  - n: Brinckmanns Jazzbar
+    town: Sønderborg
+    aliases: [Brinckmanns]
+  - n: Gråsten Slot
+    town: Gråsten
+    aliases: [Graasten Slot, Gråsten Palæ]

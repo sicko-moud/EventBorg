@@ -1,0 +1,24 @@
+# DECISIONS
+
+- M1: Mejeriet and Cathrinesminde have no own event pages; listed as `type: none` (social-only) sources so story matching works; their events arrive via sonderborg.dk.
+- M1: Dropped billet.msj.dk (robots.txt disallows all), sonderjyske.dk (robots disallows), kalender.sdu.dk (behind login), opdagdanmark.dk (third-party aggregator, prefer primary sources).
+- M1: Churches, sports clubs and SDU student orgs have no public machine-readable calendars; covered via sonderborg.dk until M3 social inbox.
+- M1: ig/fb handles taken only from each source's own website footer links, never guessed.
+- M1: Per-source `every` interval + conditional GET; html_llm pages are re-sent to Gemini only when their main text hash changes.
+- M1: html_llm sends one page per LLM call (a page holds many events); summaries/fallback categories are batched 15 per call.
+- M1: Added `ad` (all-day / time unknown) key to the data model; `s` is then local midnight.
+- M1: Online events are dropped (not inside the municipality).
+- M1: JSON-LD price "0" is treated as unknown, not free (WordPress plugins emit it as a placeholder).
+- M1: Municipality check order: Danish zip → lat/lng polygon → town/outside-town names → source `local` flag.
+- M1: Title similarity also returns 1.0 when one title's words are a subset of the other's (≥2 shared words), e.g. "Artist" vs "Artist – Tour 2026".
+- M1: URL-based dedupe ignores homepages and listing pages (they don't identify one event).
+- M1: IDs stay stable: a new ID that dedupe-matches last run's event re-uses the old ID; same-title shows on one day get time-qualified IDs.
+- M1: Data branch is only force-pushed when events/sources/LLM cache/seen IDs change, or every 3 h, to stay well under Pages build limits.
+- M1: GEMINI_MODEL defaults to the `gemini-flash-latest` alias; override via repo variable.
+- M1: E-mail addresses and phone numbers are scrubbed from descriptions.
+- M1: A date-only record joins at most one timed cluster in dedupe (it had merged a 17:30 and a 20:30 show); merged events keep the timed start.
+- M1: normalize_title drops "// Venue" suffixes, (XX) country codes and UDSOLGT/AFLYST/ekstra noise words, and folds Danish letters.
+- M1: Venue town/zip swapped in source data (town "6400", zip "Sønderborg") is corrected.
+- M1: User-Agent contact is the repo URL (CONTACT_EMAIL optional); Ticketmaster shows status `disabled` without a key.
+- M1: gemini-flash-latest was overloaded (503/timeouts) on the free tier; on 503/timeout/bad JSON the run switches to GEMINI_FALLBACK_MODEL (gemini-flash-lite-latest) for its remaining calls.
+- M1: thinkingLevel "low" + maxOutputTokens 32768 (the only thinking setting both models accept); extracted descriptions capped at 200 chars so a 70-event page fits one reply.
