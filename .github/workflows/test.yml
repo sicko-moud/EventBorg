@@ -3,7 +3,7 @@ name: test
 on:
   push:
     branches: [main]
-    paths: ["pipeline/**", "tests/**", "sources.yaml", "requirements.txt", "worker/src/**", "worker/test/**", "shared/**"]
+    paths: ["pipeline/**", "tests/**", "sources.yaml", "requirements.txt", "worker/**", "shared/**", ".github/workflows/test.yml"]
   pull_request:
 
 jobs:
