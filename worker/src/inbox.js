@@ -55,3 +55,19 @@ export async function submit(req, env, ctx) {
   });
   return json({ ok: true, id: key.slice(3) });
 }
+
+const clean = (v, n) => (typeof v === "string" ? v.replace(/[\x00-\x1f\x7f]+/g, " ").trim().slice(0, n) : "");
+
+// "Suggest a source" from the app: queued like a draft, turned into a GitHub issue by the inbox job.
+export async function suggestSource(req, env, ctx) {
+  if (await limited(env.RL_SUBMIT, clientIp(req))) return fail("rate_limited", 429);
+  const { body, err } = await readJson(req, 4_000);
+  if (err) return fail(err, err === "too_large" ? 413 : 400);
+  const url = clean(body.url, 300);
+  if (url.length < 4 || /\s/.test(url)) return fail("invalid", 400);
+  await putItem(env, ctx, {
+    channel: "app", type: "source", text: null, media: [], sender: null,
+    source: { url, name: clean(body.name, 100), note: clean(body.note, 500) },
+  });
+  return json({ ok: true });
+}

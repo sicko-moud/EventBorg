@@ -1,5 +1,5 @@
 import { extract } from "./extract.js";
-import { flushPending, submit } from "./inbox.js";
+import { flushPending, submit, suggestSource } from "./inbox.js";
 import { job } from "./job.js";
 import { renderPage } from "./pages.js";
 import { metaDeletion, metaVerify, metaWebhook } from "./social.js";
@@ -14,6 +14,7 @@ export default {
     try {
       if (m === "POST" && path === "/extract") return await extract(req, env);
       if (m === "POST" && path === "/submit") return await submit(req, env, ctx);
+      if (m === "POST" && path === "/suggest") return await suggestSource(req, env, ctx);
       if (m === "POST" && path === "/story-seen") return await storySeen(req, env, ctx);
       if (m === "GET" && path === "/stories") return await listStories(env);
       if (m === "GET" && path === "/channels") return json(activeChannels(env), 200, { "cache-control": "public, max-age=3600" });

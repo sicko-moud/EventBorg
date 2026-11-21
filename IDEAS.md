@@ -20,3 +20,10 @@
 - [done] Editable moderation: the Issue holds the fields as YAML; corrections made in the Issue before adding `approve` are what gets published. Value high, cost low.
 - [done] Relative dates ("i aften", "på lørdag") resolved against the post/message date, not the run date. Value medium, cost low.
 - [M7] Device-reported stories need 2 reports from different IPs before the relay pushes (abuse guard once there are enough sharers). Value medium, cost low-medium.
+
+## M4 — app core
+- [done] Quick filter chips under search (Now, Tonight, Weekend, Free) as shortcuts into the saved filter. Value high, cost low.
+- [done] Long-running events (exhibitions) that already started go to an "Ongoing" section at the end instead of filling Today. Value high, cost low.
+- [done] Source page: tap a source to see its links (web/IG/FB), star it and its upcoming events. Value medium, cost low.
+- [done] Search folds Danish spellings both ways (ø/oe→o, æ→ae, å/aa→a, accents stripped). Value medium, cost low.
+- [M7] Map view of today's events by venue (needs the M7 geocoding table). Value medium, cost medium.

@@ -71,3 +71,20 @@
 - M5 spec: "Hide original notification" cancels only matched notifications; for a listed venue the user doesn't watch, only when EventBorg showed its own alert, so no notification disappears without a replacement.
 - M5 spec: watching a listed source also subscribes st_<sourceId>, so other users' relayed sightings arrive too; profiles the user adds get no topic and never leave the phone.
 - M5 spec: Facebook group notifications carry no post URL, so "Open" fires the original notification's tap intent while the app still holds it and otherwise opens the group page.
+- M4: No local Android SDK (Android Studio installed but never set up), so the app builds in GitHub Actions (`android` workflow: assembleRelease, size check against the 6 MB target / 8 MB cap, APK artifact). Gradle wrapper 9.9.2 (jar checksum verified), AGP 9.5.2 with built-in Kotlin 2.4.21, compile/target SDK 37.
+- M4: No Google Services plugin: app/build.gradle.kts reads the gitignored google-services.json into resValues; without it the app runs with push off (BuildConfig.FIREBASE). CI writes it from the GOOGLE_SERVICES_JSON secret.
+- M4: Release builds are signed with the debug key unless EB_KEYSTORE (+ password/alias env vars) is set; a real keystore comes with the M6 README.
+- M4: No ViewModels/Room/Retrofit: app-level Repo (StateFlow, OkHttp, ETag/If-None-Match, one JSON file each in noBackupFilesDir) and Prefs (DataStore) are shared by all screens; filtering ~300 events per recomposition is trivial.
+- M4: Sections run chronologically: Today / Tomorrow / Later this week / This weekend / Next week / Later, plus "Ongoing" at the end for already-started events spanning more than 3 days (exhibitions), so they don't fill Today.
+- M4: "Now"/"Tonight" skip those long events; "This weekend" runs Fri 17:00 – Sun 24:00; all-day events ending at 00:00 count that end day as included.
+- M4: Event notification setting maps to topics (All → `all`; Favourites → `c_<cat>` + `s_<source>`; Off → none), story alerts to `st_all` / `st_<favourite source>`; subscriptions are diffed against a stored set and retried on the next change or app start. Defaults: All events, story alerts for favourites.
+- M4: Search folds ø/oe→o, æ→ae, å/aa→a and strips accents on both sides; tokens are ANDed over title, venue, town, organizer, tags, description and the localized category name.
+- M4: UI language EN/DA without AppCompat: LocaleManager on Android 13+ (plus locales_config for system settings), a small SharedPreferences value + attachBaseContext below.
+- M4: Category art is an emoji on a per-category tint (no image assets); icons from material-icons-core plus three hand-added vectors (StarBorder, FilterList, OpenInNew).
+- M4: Source page (tap a source): links, star, upcoming events. Social links open with ACTION_VIEW so the Instagram/Facebook app handles them; web links use a Custom Tab.
+- M4: "Suggest a source" posts {name, url, note} to a new Worker endpoint POST /suggest (per-IP submit limit), queued in KV like drafts; the inbox job opens a public issue labelled `source` with the values in a code block (markdown and @mentions inert, phones/e-mails scrubbed). The app and the privacy page say it is public.
+- M4: Event cache lives in noBackupFilesDir (not backed up); DataStore prefs (saved, favourites, settings) are included in Android backup.
+- M4: FCM's own manifest adds WAKE_LOCK for message delivery; EventBorg's code holds none.
+- M4: An offline fetch is retried after 3, 10 and 30 s while the app is on screen (found by the emulator test: Wi-Fi came up seconds after launch); Retry/pull replaces a waiting retry; nothing runs in the background.
+- M4: Emulator smoke test (CI, opt-in via `[smoke]` in the commit message or workflow_dispatch): API 35 emulator, cold start time, screenshots of every main screen in EN and DA, fails on FATAL EXCEPTION.
+- M4: Danish feed tab is "Forside" ("Arrangementer" wrapped in the nav bar).

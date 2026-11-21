@@ -168,8 +168,8 @@ class GitHub:
         r.raise_for_status()
         return [i for i in r.json() if "pull_request" not in i]
 
-    def create(self, title: str, body: str) -> int:
-        r = self.s.post(f"{self.api}/issues", json={"title": title[:200], "body": body, "labels": ["inbox"]}, timeout=30)
+    def create(self, title: str, body: str, labels: tuple[str, ...] = ("inbox",)) -> int:
+        r = self.s.post(f"{self.api}/issues", json={"title": title[:200], "body": body, "labels": list(labels)}, timeout=30)
         r.raise_for_status()
         return r.json()["number"]
 
@@ -189,6 +189,18 @@ def issue_body(key: str, channel: str, d: dict, why: str, res: dict) -> str:
             "Close the issue to reject it.\n\n"
             f"```yaml\n{yaml.safe_dump(fields, allow_unicode=True, sort_keys=False, width=1000).strip()}\n```\n\n"
             f"<!-- eventborg:{key} {channel} -->\n")
+
+
+def suggestion_issue(s: dict) -> tuple[str, str]:
+    """Title and body for a "Suggest a source" item; values sit in a code block so markdown and mentions stay inert."""
+    def f(k: str, n: int) -> str:
+        return scrub(str(s.get(k) or "")).replace("`", "'")[:n] or "-"
+    name, url = f("name", 100), f("url", 300)
+    title = "Source suggestion: " + re.sub(r"[@<>\[\]]", "", name if name != "-" else url)
+    body = ("Someone suggested a source in the app.\n\n"
+            f"```text\nName: {name}\nLink: {url}\nNote: {f('note', 500)}\n```\n\n"
+            "Check robots.txt and the site's terms, then add it to sources.yaml (with ig/fb/names) or close this issue.\n")
+    return title[:200], body
 
 
 def parse_issue(body: str | None) -> tuple[str | None, str | None, dict | None]:
@@ -469,6 +481,15 @@ def step(state, llm: LLM, web_events: list[dict], sources: list[dict], aliases: 
             mh = f"mh:{it['mh']}" if it.get("mh") else None
             if it["key"] in box["done"] or (mh and (mh in box["done"] or mh in batch_mh)):
                 acks.append({"key": it["key"]})
+            elif it.get("type") == "source":
+                if gh:
+                    try:
+                        gh.create(*suggestion_issue(it.get("source") or {}), labels=("source",))
+                        box["done"][it["key"]] = today
+                        acks.append({"key": it["key"]})
+                        log.append("source suggestion: issue")
+                    except requests.RequestException as ex:
+                        log.append(f"suggestion: {type(ex).__name__}")
             elif it.get("type") == "delete":
                 forget(box, it.get("senders") or [])
                 box["done"][it["key"]] = today

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_feed">Forside</string>
+    <string name="tab_saved">Gemt</string>
+    <string name="tab_sources">Kilder</string>
+    <string name="tab_settings">Indstillinger</string>
+
+    <string name="search_hint">Søg arrangementer og steder</string>
+    <string name="clear_search">Ryd søgning</string>
+    <string name="filters">Filtre</string>
+    <string name="q_now">Nu</string>
+    <string name="q_tonight">I aften</string>
+    <string name="q_weekend">I weekenden</string>
+    <string name="q_fav">Favoritter</string>
+    <string name="free">Gratis</string>
+
+    <string name="sec_today">I dag</string>
+    <string name="sec_tomorrow">I morgen</string>
+    <string name="sec_week">Senere på ugen</string>
+    <string name="sec_weekend">I weekenden</string>
+    <string name="sec_next_week">Næste uge</string>
+    <string name="sec_later">Senere</string>
+    <string name="sec_ongoing">Igangværende</string>
+
+    <string name="all_day">Hele dagen</string>
+    <string name="until">Til %1$s</string>
+    <string name="price_from">%1$s kr.</string>
+    <string name="price_range">%1$s–%2$s kr.</string>
+    <string name="cancelled">Aflyst</string>
+    <string name="moved">Flyttet</string>
+    <string name="save">Gem arrangement</string>
+    <string name="unsave">Fjern fra gemte</string>
+    <string name="saved">Gemt</string>
+
+    <string name="just_now">lige nu</string>
+    <string name="min_ago">for %1$d min. siden</string>
+    <string name="h_ago">for %1$d t. siden</string>
+    <string name="d_ago">for %1$d dage siden</string>
+
+    <string name="offline_banner">Offline. Viser arrangementer fra %1$s.</string>
+    <string name="server_banner">Arrangementerne kunne ikke opdateres lige nu.</string>
+    <string name="retry">Prøv igen</string>
+    <string name="offline_title">Du er offline</string>
+    <string name="server_title">Arrangementerne kunne ikke hentes</string>
+    <string name="error_body">Forbind til internettet og prøv igen. Når arrangementerne er hentet, gemmes de på telefonen.</string>
+    <string name="empty_all">Ingen kommende arrangementer lige nu</string>
+    <string name="empty_filtered">Ingen arrangementer passer</string>
+    <string name="empty_filtered_body">Prøv en anden søgning eller færre filtre.</string>
+    <string name="clear_filters">Ryd søgning og filtre</string>
+
+    <string name="f_when">Hvornår</string>
+    <string name="d_any">Når som helst</string>
+    <string name="d_week">Næste 7 dage</string>
+    <string name="d_custom">Vælg datoer</string>
+    <string name="f_categories">Kategorier</string>
+    <string name="f_more">Mere</string>
+    <string name="f_free">Kun gratis arrangementer</string>
+    <string name="f_fav">Kun favoritter</string>
+    <string name="f_town">By</string>
+    <string name="f_all_towns">Alle byer</string>
+    <string name="f_source">Kilde</string>
+    <string name="f_all_sources">Alle kilder</string>
+    <string name="f_reset">Nulstil</string>
+    <string name="done">Færdig</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Annuller</string>
+
+    <string name="back">Tilbage</string>
+    <string name="share">Del</string>
+    <string name="tickets">Tilmelding / Billetter</string>
+    <string name="add_calendar">Føj til kalender</string>
+    <string name="open_map">Åbn i kort</string>
+    <string name="organizer">Arrangør: %1$s</string>
+    <string name="age">Alder: %1$s</string>
+    <string name="language">Sprog: %1$s</string>
+    <string name="show_original">Vis original tekst</string>
+    <string name="hide_original">Skjul original tekst</string>
+    <string name="sources">Kilder</string>
+    <string name="open_source_page">Åbn kildens side</string>
+    <string name="fav_cat">Føj kategori til favoritter</string>
+    <string name="unfav_cat">Fjern kategori fra favoritter</string>
+    <string name="fav_source">Føj kilde til favoritter</string>
+    <string name="unfav_source">Fjern kilde fra favoritter</string>
+    <string name="gone_title">Arrangementet er ikke længere på listen</string>
+    <string name="gone_body">Det kan være overstået, aflyst eller ændret af arrangøren.</string>
+    <string name="no_app">Der er ingen app, der kan åbne dette</string>
+
+    <string name="kind_web">Web</string>
+    <string name="kind_ig">IG</string>
+    <string name="kind_wa">WA</string>
+    <string name="kind_fb">FB</string>
+    <string name="kind_app">App</string>
+
+    <string name="saved_events">Gemte arrangementer</string>
+    <string name="saved_events_empty">Tryk på ☆ ved et arrangement for at gemme det her.</string>
+    <string name="fav_categories">Favoritkategorier</string>
+    <string name="fav_sources">Favoritkilder</string>
+    <string name="fav_sources_empty">Giv et spillested eller en arrangør en stjerne under Kilder.</string>
+    <string name="fav_note">Favoritter bruges af filteret "Favoritter" og, hvis du vælger det under Indstillinger, til hvilke arrangementer du får besked om.</string>
+
+    <string name="sources_intro">Arrangementerne hentes automatisk fra %1$d offentlige kilder.</string>
+    <string name="skind_venue">Spillested</string>
+    <string name="skind_organizer">Arrangør</string>
+    <string name="skind_business">Virksomhed</string>
+    <plurals name="src_events">
+        <item quantity="one">%1$d arrangement</item>
+        <item quantity="other">%1$d arrangementer</item>
+    </plurals>
+    <plurals name="upcoming">
+        <item quantity="one">%1$d kommende arrangement</item>
+        <item quantity="other">%1$d kommende arrangementer</item>
+    </plurals>
+    <string name="src_updated">Opdateret %1$s</string>
+    <string name="src_social">Via Instagram/Facebook</string>
+    <string name="src_new">Ny, første tjek venter</string>
+    <string name="src_paused">Sat på pause</string>
+    <string name="src_problem">Kan ikke læses lige nu</string>
+    <string name="src_last_ok">sidst OK %1$s</string>
+    <string name="source_gone">Kilden er ikke længere på listen</string>
+    <string name="source_no_events">Ingen kommende arrangementer fra denne kilde.</string>
+    <string name="website">Hjemmeside</string>
+    <string name="suggest_source">Foreslå en kilde</string>
+    <string name="suggest_body">Kender du et sted, en forening eller en arrangør, der lægger offentlige arrangementer ud? Send os linket.</string>
+    <string name="suggest_name">Navn (valgfrit)</string>
+    <string name="suggest_link">Hjemmeside eller Instagram/Facebook-link</string>
+    <string name="suggest_note">Bemærkning (valgfrit)</string>
+    <string name="suggest_public">Forslag offentliggøres som en offentlig note til vedligeholderne. Skriv ikke personlige oplysninger.</string>
+    <string name="send">Send</string>
+    <string name="suggest_ok">Tak! Vi kigger på det.</string>
+    <string name="suggest_limited">For mange forslag. Prøv igen om et minut.</string>
+    <string name="suggest_invalid">Tjek venligst linket.</string>
+    <string name="suggest_failed">Kunne ikke sende. Tjek din forbindelse og prøv igen.</string>
+
+    <string name="set_events">Notifikationer om arrangementer</string>
+    <string name="set_events_all">Alle nye arrangementer</string>
+    <string name="set_events_fav">Kun favoritkategorier og -kilder</string>
+    <string name="off">Fra</string>
+    <string name="set_events_hint">Én notifikation pr. nyt arrangement, samlet når mange kommer på én gang, og holdt tilbage om natten til kl. 8.</string>
+    <string name="set_stories">Story-notifikationer</string>
+    <string name="set_stories_fav">Favoritkilder</string>
+    <string name="set_stories_all">Alle lokale steder</string>
+    <string name="set_stories_hint">Når et lokalt sted lægger en ny Instagram- eller Facebook-story op, som måske er et arrangement.</string>
+    <string name="set_no_push">Notifikationer er ikke tilgængelige i denne version.</string>
+    <string name="set_language">Sprog</string>
+    <string name="lang_system">Systemets sprog</string>
+    <string name="lang_en">English</string>
+    <string name="lang_da">Dansk</string>
+    <string name="set_about">Om</string>
+    <string name="about_body">EventBorg viser offentlige arrangementer i Sønderborg Kommune, hentet automatisk fra offentlige hjemmesider og sociale medier. Gratis, uden login, reklamer eller sporing. Ikke en officiel app fra Sønderborg Kommune.</string>
+    <string name="privacy">Privatlivspolitik</string>
+    <string name="organizers">For arrangører: kom på listen</string>
+    <string name="source_code">Kildekode</string>
+    <string name="version">Version %1$s</string>
+
+    <string name="cat_music">Musik</string>
+    <string name="cat_nightlife">Natteliv</string>
+    <string name="cat_theatre_culture">Teater og kultur</string>
+    <string name="cat_exhibitions">Udstillinger</string>
+    <string name="cat_food_drink">Mad og drikke</string>
+    <string name="cat_sports">Sport</string>
+    <string name="cat_family_kids">Familie og børn</string>
+    <string name="cat_students">Studerende</string>
+    <string name="cat_talks_learning">Foredrag og læring</string>
+    <string name="cat_markets">Markeder</string>
+    <string name="cat_outdoor_nature">Natur og friluftsliv</string>
+    <string name="cat_festivals">Festivaler</string>
+    <string name="cat_community">Fællesskab</string>
+    <string name="cat_business">Erhverv</string>
+    <string name="cat_other">Andet</string>
+</resources>

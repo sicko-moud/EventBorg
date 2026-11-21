@@ -47,6 +47,7 @@ const PAGES = {
 <li>Google's free Gemini tier may use submitted content to improve Google's products, so do not share private content.</li>
 ${ways(env, "en") ? `<li>Messages to ${ways(env, "en")} are handled through Meta's official APIs. We keep only a salted hash of your sender id, the message text with names and phone numbers removed, and links to the media (never the media itself), for at most 14 days, plus a hashed counter of how many of your events were published. So that we can answer you once, your sender id is also kept encrypted, readable only by our server, for at most 24 hours. We reply at most once per message.</li>` : ""}
 <li>Events that need a manual check are reviewed in a GitHub issue that contains only the event details.</li>
+<li>"Suggest a source" sends the name, link and note you type; they are posted as a public GitHub issue for us to check. Nothing about you or your phone is included.</li>
 <li>Stories are never downloaded, read or analysed.${activeChannels(env).ig ? ` When a listed venue mentions @${esc(env.IG_HANDLE)} in its story, we only note which venue and when.` : ""}</li>
 </ul>
 <h2>Processors</h2>
@@ -77,6 +78,7 @@ ${ways(env, "en") ? `<li>Messages to ${ways(env, "en")} are handled through Meta
 <li>Googles gratis Gemini-niveau kan bruge indsendt indhold til at forbedre Googles produkter, så del ikke privat indhold.</li>
 ${ways(env, "da") ? `<li>Beskeder til ${ways(env, "da")} håndteres via Metas officielle API'er. Vi gemmer kun en saltet hash af dit afsender-id, beskedteksten uden navne og telefonnumre og links til medierne (aldrig selve medierne) i højst 14 dage, samt en hashet tæller over, hvor mange af dine arrangementer der er offentliggjort. For at kunne svare dig én gang gemmer vi også dit afsender-id krypteret, så kun vores server kan læse det, i højst 24 timer. Vi svarer højst én gang pr. besked.</li>` : ""}
 <li>Arrangementer, der skal tjekkes manuelt, gennemgås i et GitHub-issue, der kun indeholder arrangementets detaljer.</li>
+<li>"Foreslå en kilde" sender det navn, link og den bemærkning, du skriver; de lægges op som et offentligt GitHub-issue, som vi tjekker. Intet om dig eller din telefon er med.</li>
 <li>Stories bliver aldrig downloadet, læst eller analyseret.${activeChannels(env).ig ? ` Når et sted i appen nævner @${esc(env.IG_HANDLE)} i sin story, noterer vi kun hvilket sted og hvornår.` : ""}</li>
 </ul>
 <h2>Databehandlere</h2>
