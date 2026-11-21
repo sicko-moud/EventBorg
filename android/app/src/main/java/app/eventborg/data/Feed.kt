@@ -17,7 +17,7 @@ class Ev(val e: Event, val start: ZonedDateTime, val end: ZonedDateTime, val key
     val id get() = e.id
     val long = ChronoUnit.DAYS.between(start.toLocalDate(), end.minusSeconds(1).toLocalDate()) > 3
     val cancelled get() = e.st == "cancelled"
-    val student = e.c == "students" || "students" in e.tags
+    val student = e.c == "students" || e.tags.any { it == "students" || it == "youth" }
 }
 
 private fun parseTime(s: String?): ZonedDateTime? =

@@ -20,7 +20,7 @@
     <string name="f_students">Student events only</string>
     <string name="set_feed">Feed</string>
     <string name="set_students">Student events first</string>
-    <string name="set_students_hint">Shows the next two weeks of student events (SDU, IDA, student clubs) at the top of the feed and puts the Students chip first.</string>
+    <string name="set_students_hint">Shows the next two weeks of student and youth events (SDU, IDA, student clubs, 15–30) at the top of the feed and puts the Students chip first.</string>
     <string name="free">Free</string>
 
     <string name="sec_today">Today</string>
