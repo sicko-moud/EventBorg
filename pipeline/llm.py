@@ -14,6 +14,14 @@ def content_hash(*parts: str) -> str:
     return hashlib.sha256("\x1f".join(parts).encode("utf-8")).hexdigest()[:24]
 
 
+def _error_message(r) -> str:
+    try:
+        msg = r.json()["error"]["message"]
+    except (ValueError, KeyError, TypeError):
+        msg = r.text
+    return " ".join(str(msg).split())[:160]
+
+
 class LLM:
     """Gemini via REST with JSON-schema output. Results are cached by content hash in state.
 
@@ -96,7 +104,7 @@ class LLM:
             self._exhausted.add(model)
             return None, "HTTP 429 (quota), skipped for the rest of this run"
         if r.status_code >= 400:
-            return None, f"HTTP {r.status_code}: {r.text[:160]}"
+            return None, f"HTTP {r.status_code}: {_error_message(r)}"
         try:
             cands = r.json().get("candidates") or []
         except ValueError:
