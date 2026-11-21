@@ -59,3 +59,9 @@ jobs:
           git -c user.name="eventborg-bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -q -m "data $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
+
+      - name: Send pushes
+        if: steps.pipeline.outputs.push == 'true'
+        env:
+          FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
+        run: python -m pipeline push --out out

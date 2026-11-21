@@ -1,19 +1,21 @@
 # PROGRESS
 
-**M1 Web ingest — done and live (2026-11-21).** Next: M2.
+**M2 Push sender + Worker app endpoints — code done and tested locally (2026-11-21); not deployed (needs accounts).** Next: deploy, then M3.
 
 Status
-- Repo https://github.com/sicko-moud/EventBorg (public). Pages from branch `data`: https://sicko-moud.github.io/EventBorg/events.json and /sources.json (ETag, max-age=600).
-- First CI run: 266 events from 10 sources (sonderborg-dk 238, koncertsalen-alsion 39, sonderborg-teater 27, musikskolen 10, sdjsymfoni 9, brinckmanns 7, sergenten 4, others 1–2). 90 summaries; the rest fill in at 25 LLM calls per run.
-- 23 sources in sources.yaml: 1 tribe, 2 jsonld, 17 html_llm, ticketmaster (`disabled` until TICKETMASTER_KEY), 2 social-only.
-- Secrets: GEMINI_API_KEY. Variables: GEMINI_MODEL, LLM_MAX_CALLS. CONTACT_EMAIL is optional; the User-Agent carries the repo URL.
-- `python -m pipeline run [--force] [--only a,b] [--no-llm]`; 21 pytest tests pass. Pushable new-event IDs are in state/meta.json `push` for M2.
+- M1 pipeline live: https://sicko-moud.github.io/EventBorg/events.json (~314 events, 10+ sources).
+- Push: pipeline/push.py. The run step picks pushes (first-ingest + backfill silence, 60-day rule, quiet hours 22–08 queue in meta.pushq) into meta.push; the CI step `python -m pipeline push` sends them after publish (dry run without FCM_SERVICE_ACCOUNT). Grouping >3/category, flood guard >8.
+- Worker (worker/, wrangler 4.160): POST /extract (text/link/image → Gemini → draft + signed tok), POST /submit (→ KV `in:<ts>:<id>`, repository_dispatch ≤1/60 s + minute cron flush), GET /privacy /data-deletion /organizers (EN/DA). Verified with `wrangler dev`: text, link (robots-checked), image, blocked IG link, forged token, rate limit, cron flush.
+- Shared extraction prompt/schema: shared/extract.json.
+- Tests: 28 pytest + 6 node (`node --test worker/test/`).
+
+Needed before going live (user)
+- Cloudflare account → `cd worker; npx wrangler login; npx wrangler kv namespace create KV` (paste id in wrangler.toml); secrets GEMINI_API_KEY, SIGNING_KEY, GH_TOKEN (fine-grained PAT, this repo, Contents read/write), optional CONTACT_EMAIL; `npm run deploy`.
+- Firebase project (Spark) → service-account JSON → GitHub secret FCM_SERVICE_ACCOUNT.
 
 Open issues
-- LLM: gemini-flash-lite-latest is primary; gemini-flash-latest only retries calls lite fails on (`llm_fallbacks=` in the run summary).
-- Lite can return a truncated event list; html_llm checks events vs. page links and asks flash-latest (or lite again) for a second opinion. Both models 503 often; failed pages keep their last events and retry every run.
-- For M2: a source recovering from a truncated extraction makes its backlog look new (37 pushable in one run). Treat many new events from one source in one run as silent backfill.
+- Gemini free tier 503s often; Worker retries primary→fallback→primary in 45 s, else 503 llm_unavailable.
 - ig handles still unknown for Mejeriet, Koncertsalen Alsion, Universe, Nordborghus, Skansen, Sønderborg Teater.
 
-Next step
-- M2: FCM push sender reading state/meta.json `push` (grouping, topics, 60-day rule); Worker app endpoints + static pages.
+Next step (M3)
+- Inbox job: pull KV `in:` items via an authenticated Worker endpoint, map with shared/extract.json, auto-publish rules (app items: conf only if `orig` and not `edited`), Issues, replies; DELETE/SLET command + Meta deletion callback (promised on /data-deletion); Meta/WhatsApp/Telegram webhooks; story relay.

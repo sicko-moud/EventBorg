@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from . import publish
+from . import publish, push
 from .adapters import Ctx, Skip, get_adapter
 from .categorize import categorize
 from .config import HORIZON_DAYS, ROOT, TZ
@@ -18,7 +18,6 @@ from .normalize import make_id, to_event
 from .state import State
 from .text import fold
 
-PUSH_MAX_DAYS = 60
 REFRESH_HOURS = 3
 _NON_EVENT = re.compile(r"abningstider|opening hours|\blukket\b|\bclosed\b|\bferielukket")
 
@@ -133,16 +132,15 @@ def run(out: Path, only: set[str] | None = None, force: bool = False, use_llm: b
     pending = enrich(merged, llm)
     llm.prune()
 
-    new, pushable = [], []
+    new = []
     for e in merged:
-        if e["id"] in state.seen:
-            continue
-        state.seen[e["id"]] = now.date().isoformat()
-        new.append(e)
-        silent = all(s["id"] in first_ingest for s in e["src"])
-        soon = datetime.fromisoformat(e["s"]) <= now + timedelta(days=PUSH_MAX_DAYS)
-        if not silent and soon and e.get("st") == "ok" and state.prev_events:
-            pushable.append(e["id"])
+        if e["id"] not in state.seen:
+            state.seen[e["id"]] = now.date().isoformat()
+            new.append(e)
+    counts = {sid: st.get("cnt") or 0 for sid, st in state.sources.items()}
+    pushable = push.select(new, first_ingest, counts, now) if state.prev_events else []
+    old_queue = state.meta.get("pushq", [])
+    send, state.meta["pushq"] = push.schedule(old_queue, pushable, now)
     live = {e["id"] for e in merged}
     cutoff = (now - timedelta(days=HORIZON_DAYS + 30)).date().isoformat()
     state.seen = {k: v for k, v in state.seen.items() if k in live or v >= cutoff}
@@ -153,14 +151,14 @@ def run(out: Path, only: set[str] | None = None, force: bool = False, use_llm: b
     changed = publish.write(out, pub_events, pub_sources, state.prev_events, state.prev_sources, now)
     last = state.meta.get("pub")
     stale = not last or now - datetime.fromisoformat(last) >= timedelta(hours=REFRESH_HOURS)
-    do_publish = changed or state.grew() or stale
+    do_publish = changed or state.grew() or stale or bool(send) or state.meta["pushq"] != old_queue
     if do_publish:
         state.meta["pub"] = now.isoformat(timespec="seconds")
-    state.meta["push"] = pushable
+    state.meta["push"] = send
     state.save()
     if os.environ.get("GITHUB_OUTPUT"):
         with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-            f.write(f"publish={'true' if do_publish else 'false'}\n")
+            f.write(f"publish={'true' if do_publish else 'false'}\npush={'true' if send else 'false'}\n")
     return {"report": report, "events": len(pub_events), "merged_from": len(events), "new": len(new),
-            "pushable": len(pushable), "llm_calls": llm.calls, "llm_fallbacks": llm.fallbacks, "llm_pending": pending, "publish": do_publish,
+            "pushable": len(pushable), "push_now": len(send), "queued": len(state.meta["pushq"]), "llm_calls": llm.calls, "llm_fallbacks": llm.fallbacks, "llm_pending": pending, "publish": do_publish,
             "per_source": {s["id"]: sum(1 for e in pub_events if any(x["id"] == s["id"] for x in e["src"])) for s in sources}}

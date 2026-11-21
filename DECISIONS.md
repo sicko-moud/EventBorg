@@ -26,3 +26,19 @@
 - M1: A source whose last fetch ended in llm_unavailable/llm_quota is due on every run until it succeeds, regardless of its `every` interval.
 - M1: flash-lite sometimes stops after 1–15 events on a 70-event page (same input gave 72, 1, 15). An html_llm reply with fewer than ¼ as many events as the page has distinct [links] counts as a lite failure → flash-latest; if flash is down, lite gets a second try and the fuller reply wins.
 - M1: html_llm stores its PROMPT_VERSION per source and re-extracts all pages once when it changes (x3 drops the truncated results cached under x2).
+- M2: Push decisions are made in the run step (persisted on the data branch) and sent by a separate step after publish, so a failed publish can't cause duplicate pushes.
+- M2: Quiet hours 22:00–08:00 Copenhagen: pushes queue in state meta.pushq and the first run after 08:00 sends them, grouped; a queue change forces a publish.
+- M2: Silent backfill: a source with ≥10 new events in one run that are ≥50% of its listing counts as a first ingest (fixes truncated-extraction recovery, 37 pushes in one run).
+- M2: Flood guard: more than 8 pushable events in one run → every category with ≥2 of them is grouped.
+- M2: FCM conditions allow 5 topics: 'all', c_X and the first 3 source topics; followers of a 4th+ source of one event/group get no push (rare).
+- M2: Event push data = compact event JSON without desc (≤3.8 KB, drops sum/tags if needed) so the app can insert it into its cache; group push = category, count, up to N {id,t,s,v.n}. Android priority HIGH, ttl 12 h, restricted to app.eventborg, collapse key c_<cat> for groups.
+- M2: FCM OAuth JWT signed with `cryptography` (one CI-only dependency) instead of google-auth.
+- M2: /extract takes JSON {text, img (base64), mime}; a link in the text is read only if robots.txt allows it, checked on every redirect hop; login walls (Instagram/Facebook) return blocked_url so the app can ask for a screenshot.
+- M2: Extraction prompt + schema live in shared/extract.json (Worker now, M3 inbox job later); field names match html_llm's raw format.
+- M2: /extract returns an HMAC-signed token of the draft + confidence; /submit keeps conf only if the token verifies (≤24 h) and flags edits to title/start/venue/town, so clients can't assign their own confidence.
+- M2: A past start whose year doesn't appear in the shared text is rolled to the next occurrence (flash-lite returned 2025 for "lørdag d. 13. december"); the prompt also gets today's weekday.
+- M2: Worker Gemini calls: primary → fallback → primary within a 45 s budget (both free models 503 often).
+- M2: Rate limits use Workers rate-limit bindings (per IP: extract 6/min, submit 4/min; extract 30/min overall): no KV writes, nothing stored.
+- M2: Dispatch throttle: KV lock (60 s TTL) + pending flag flushed by a 1-minute Worker cron (~1.4k KV reads/day; writes only per item).
+- M2: App submissions store sender=null (no device id or IP) and never count as a trusted sender.
+- M2: /privacy, /data-deletion, /organizers in EN/DA (?lang= or Accept-Language); / shows /organizers. The DELETE/SLET command and Meta's deletion callback are described now and built in M3.

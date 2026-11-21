@@ -1,0 +1,38 @@
+name = "eventborg"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+preview_urls = false
+
+[vars]
+GH_REPO = "sicko-moud/EventBorg"
+GEMINI_MODEL = "gemini-flash-lite-latest"
+GEMINI_FALLBACK_MODEL = "gemini-flash-latest"
+IG_HANDLE = "eventborg"
+WA_NUMBER = ""
+TG_BOT = ""
+
+# Secrets (wrangler secret put): GEMINI_API_KEY, SIGNING_KEY, GH_TOKEN; optional CONTACT_EMAIL.
+
+# Create with: npx wrangler kv namespace create KV  — then paste the id here.
+[[kv_namespaces]]
+binding = "KV"
+id = "00000000000000000000000000000000"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[ratelimits]]
+name = "RL_EXTRACT"
+namespace_id = "1001"
+simple = { limit = 6, period = 60 }
+
+[[ratelimits]]
+name = "RL_SUBMIT"
+namespace_id = "1002"
+simple = { limit = 4, period = 60 }
+
+[[ratelimits]]
+name = "RL_GLOBAL"
+namespace_id = "1003"
+simple = { limit = 30, period = 60 }

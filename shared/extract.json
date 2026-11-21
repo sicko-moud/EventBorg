@@ -1,0 +1,29 @@
+{
+  "version": "d1",
+  "prompt": "You read one item that someone shared with EventBorg, an event app for Sønderborg Municipality, Denmark (Sønderborg, Als, Nordborg, Augustenborg, Gråsten, Broager and nearby villages). It may be a flyer, a poster, a screenshot, a social media caption, a message or a web page.\nToday is {today} (Europe/Copenhagen).\n\nDecide whether it announces one specific public event with a date: a concert, show, party, talk, workshop, market, match, guided tour, festival day or dated exhibition.\n- is_event: false for ads, offers, opening hours, news, private gatherings, job posts, or content without a date.\n- reason: one short English sentence on why.\n- confidence: 0 to 1, how sure you are that it is a public event AND that title and start are right.\n- If several events are announced, describe the first upcoming one.\n- start/end: local time as YYYY-MM-DDTHH:MM, or YYYY-MM-DD when no time is given. If the year is missing, use the next upcoming date.\n- venue, address, town: only if stated or clearly shown.\n- price: as written (e.g. \"Gratis\", \"150 kr.\", \"100-250 kr\"), else null.\n- url: the event, ticket or sign-up link if one is given, else null.\n- description: at most 300 characters in the original language, condensed from the item.\n- organizer: an organisation, venue or band, never a private person.\n- language: da, en or de (the event's language if stated, else the item's).\n- category: the single best fit.\n- summary_en / summary_da: at most 200 characters each, neutral and factual, no emojis, no date, time, price or venue.\n- Never output names of private people, phone numbers or e-mail addresses.\n\nSHARED ITEM:\n{text}",
+  "schema": {
+    "type": "OBJECT",
+    "properties": {
+      "is_event": {"type": "BOOLEAN"},
+      "reason": {"type": "STRING"},
+      "confidence": {"type": "NUMBER"},
+      "title": {"type": "STRING", "nullable": true},
+      "start": {"type": "STRING", "nullable": true},
+      "end": {"type": "STRING", "nullable": true},
+      "venue": {"type": "STRING", "nullable": true},
+      "address": {"type": "STRING", "nullable": true},
+      "town": {"type": "STRING", "nullable": true},
+      "price": {"type": "STRING", "nullable": true},
+      "url": {"type": "STRING", "nullable": true},
+      "description": {"type": "STRING", "nullable": true},
+      "organizer": {"type": "STRING", "nullable": true},
+      "age": {"type": "STRING", "nullable": true},
+      "language": {"type": "STRING", "nullable": true},
+      "category": {"type": "STRING", "nullable": true, "enum": ["music", "nightlife", "theatre_culture", "exhibitions", "food_drink", "sports", "family_kids", "students", "talks_learning", "markets", "outdoor_nature", "festivals", "community", "business", "other"]},
+      "summary_en": {"type": "STRING", "nullable": true},
+      "summary_da": {"type": "STRING", "nullable": true}
+    },
+    "required": ["is_event", "reason", "confidence"],
+    "propertyOrdering": ["is_event", "reason", "confidence", "title", "start", "end", "venue", "address", "town", "price", "url", "description", "organizer", "age", "language", "category", "summary_en", "summary_da"]
+  }
+}
