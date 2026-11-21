@@ -13,3 +13,10 @@
 - [done] Flood guard: when one run has more than 8 pushable events, every category with ≥2 of them is grouped. Value medium, cost low.
 - [done] /extract reads a shared link's public page (robots.txt checked, JSON-LD + main text) so "share a link" works, not only text/images. Value high, cost medium.
 - [done] /extract returns a signed token of the LLM result; /submit keeps the model's confidence only if the token verifies, so clients can't self-approve. Value high, cost low.
+
+## M3 — social inbox + story relay
+- [done] Social tokens stay in the Worker: the inbox job reads media, polls Business Discovery and sends replies through authenticated pass-through endpoints (one GitHub secret instead of five). Value high (security), cost low.
+- [done] Instant approval: the workflow also runs on `issues: labeled`, so an `approve` label publishes within ~1 min instead of ≤15. Value medium, cost low.
+- [done] Editable moderation: the Issue holds the fields as YAML; corrections made in the Issue before adding `approve` are what gets published. Value high, cost low.
+- [done] Relative dates ("i aften", "på lørdag") resolved against the post/message date, not the run date. Value medium, cost low.
+- [M7] Device-reported stories need 2 reports from different IPs before the relay pushes (abuse guard once there are enough sharers). Value medium, cost low-medium.

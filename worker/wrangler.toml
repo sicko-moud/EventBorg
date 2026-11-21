@@ -11,8 +11,14 @@ GEMINI_FALLBACK_MODEL = "gemini-flash-latest"
 IG_HANDLE = "eventborg"
 WA_NUMBER = ""
 TG_BOT = ""
+PAGES_URL = "https://sicko-moud.github.io/EventBorg"
+GRAPH_VERSION = "v27.0"
+# Instagram professional account id (Business Discovery) and WhatsApp phone number id; not secrets.
+IG_USER_ID = ""
+WA_PHONE_ID = ""
 
-# Secrets (wrangler secret put): GEMINI_API_KEY, SIGNING_KEY, GH_TOKEN; optional CONTACT_EMAIL.
+# Secrets (wrangler secret put): GEMINI_API_KEY, SIGNING_KEY, FCM_SERVICE_ACCOUNT, INBOX_TOKEN, GH_TOKEN,
+# META_APP_SECRET, META_VERIFY_TOKEN, META_TOKEN, WA_TOKEN, TG_TOKEN, TG_SECRET; optional CONTACT_EMAIL.
 
 # Created with: npx wrangler kv namespace create KV
 [[kv_namespaces]]
@@ -36,3 +42,18 @@ simple = { limit = 4, period = 60 }
 name = "RL_GLOBAL"
 namespace_id = "1003"
 simple = { limit = 30, period = 60 }
+
+[[ratelimits]]
+name = "RL_SENDER"
+namespace_id = "1004"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "RL_HOOK"
+namespace_id = "1005"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
+name = "RL_STORY"
+namespace_id = "1006"
+simple = { limit = 3, period = 60 }

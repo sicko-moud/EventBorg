@@ -1,16 +1,27 @@
 import { extract } from "./extract.js";
 import { flushPending, submit } from "./inbox.js";
+import { job } from "./job.js";
 import { renderPage } from "./pages.js";
+import { metaDeletion, metaVerify, metaWebhook, tgWebhook } from "./social.js";
+import { listStories, storySeen } from "./stories.js";
 import { fail } from "./util.js";
 
 export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
     const path = url.pathname.replace(/\/+$/, "") || "/";
+    const m = req.method;
     try {
-      if (req.method === "POST" && path === "/extract") return await extract(req, env);
-      if (req.method === "POST" && path === "/submit") return await submit(req, env, ctx);
-      if (req.method === "GET" || req.method === "HEAD") {
+      if (m === "POST" && path === "/extract") return await extract(req, env);
+      if (m === "POST" && path === "/submit") return await submit(req, env, ctx);
+      if (m === "POST" && path === "/story-seen") return await storySeen(req, env, ctx);
+      if (m === "GET" && path === "/stories") return await listStories(env);
+      if (m === "GET" && path === "/meta/webhook") return metaVerify(url, env);
+      if (m === "POST" && path === "/meta/webhook") return await metaWebhook(req, env, ctx);
+      if (m === "POST" && path === "/meta/deletion") return await metaDeletion(req, env, ctx);
+      if (m === "POST" && path === "/tg/webhook") return await tgWebhook(req, env, ctx);
+      if (path.startsWith("/job/")) return await job(req, env, path, url);
+      if (m === "GET" || m === "HEAD") {
         const page = renderPage(path, url, req, env);
         if (page) return page;
       }

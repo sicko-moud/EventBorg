@@ -7,12 +7,12 @@ const CAPS = {
 };
 const DATE = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2})?$/;
 const EMAIL = /[\w.+-]+@[\w-]+\.[\w.-]+/g;
-const PHONE = /(?:\+45\s?)?(?<![\d.,:/-])(?:\d{2} \d{2} \d{2} \d{2}|\d{4} \d{4}|\d{8})(?![\d.,:/-])/g;
+const PHONE = /(?:\+45\s?)?(?<![\d.,:/-])(?:\d{2} \d{2} \d{2} \d{2}|\d{4} \d{4}|\d{8})(?![\d,:/-]|\.\d)/g;
+
+export const scrub = (s) => String(s || "").replace(EMAIL, "").replace(PHONE, "").replace(/[ \t]{2,}/g, " ").trim();
 
 const text = (v, max) =>
-  typeof v === "string"
-    ? v.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "").replace(EMAIL, "").replace(PHONE, "").replace(/[ \t]{2,}/g, " ").trim().slice(0, max) || null
-    : null;
+  typeof v === "string" ? scrub(v.replace(/[\u0000-\u0008\u000b-\u001f\u007f]/g, "")).slice(0, max) || null : null;
 
 function httpUrl(v) {
   if (typeof v !== "string" || v.length > 500) return null;
@@ -65,7 +65,8 @@ export function findUrl(s) {
 }
 
 export function buildPrompt(today, parts) {
-  return spec.prompt.replace("{today}", today).replace("{text}", parts.filter(Boolean).join("\n\n") || "(see the image)");
+  const text = parts.filter(Boolean).join("\n\n") || "(see the image)";
+  return `${spec.intro.replace("{today}", today)}\n\n${spec.rules}\n\nSHARED ITEM:\n${text}`;
 }
 
 export const SCHEMA = spec.schema;

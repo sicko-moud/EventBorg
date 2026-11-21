@@ -5,6 +5,8 @@ on:
     - cron: "*/15 * * * *"
   repository_dispatch:
     types: [inbox]
+  issues:
+    types: [labeled]
   workflow_dispatch:
     inputs:
       force:
@@ -22,9 +24,11 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   run:
+    if: github.event_name != 'issues' || github.event.label.name == 'approve'
     runs-on: ubuntu-latest
     timeout-minutes: 14
     steps:
@@ -52,6 +56,9 @@ jobs:
           LLM_MAX_SECONDS: ${{ vars.LLM_MAX_SECONDS || '480' }}
           TICKETMASTER_KEY: ${{ secrets.TICKETMASTER_KEY }}
           CONTACT_EMAIL: ${{ secrets.CONTACT_EMAIL }}
+          WORKER_URL: ${{ vars.WORKER_URL || 'https://eventborg.eventborg-worker.workers.dev' }}
+          INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python -m pipeline run --out out ${{ inputs.force && '--force' || '' }}
 
       - name: Publish data branch
@@ -63,6 +70,13 @@ jobs:
           git -c user.name="eventborg-bot" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
             commit -q -m "data $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" data
+
+      - name: Acknowledge inbox items and reply
+        if: steps.pipeline.outputs.ack == 'true' && steps.pipeline.outputs.publish == 'true'
+        env:
+          WORKER_URL: ${{ vars.WORKER_URL || 'https://eventborg.eventborg-worker.workers.dev' }}
+          INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
+        run: python -m pipeline ack --out out
 
       - name: Send pushes
         if: steps.pipeline.outputs.push == 'true'

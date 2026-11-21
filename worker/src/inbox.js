@@ -32,10 +32,11 @@ export async function flushPending(env) {
   await dispatch(env);
 }
 
-export async function putItem(env, ctx, item) {
+// metadata.s (sender hash) lets DELETE/SLET find a sender's items from a key listing without reading them.
+export async function putItem(env, ctx, item, metadata = { s: item.sender || "-" }) {
   const ts = Date.now();
   const key = `in:${ts}:${crypto.randomUUID().slice(0, 8)}`;
-  await env.KV.put(key, JSON.stringify({ ...item, ts }), { expirationTtl: ITEM_TTL });
+  await env.KV.put(key, JSON.stringify({ ...item, ts }), { expirationTtl: ITEM_TTL, metadata });
   await requestRun(env, ctx);
   return key;
 }

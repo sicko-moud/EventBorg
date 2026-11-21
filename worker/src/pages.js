@@ -32,9 +32,9 @@ const PAGES = {
 <ul>
 <li>Text, links and images you share with the app go to our Cloudflare Worker and to the Google Gemini API, which reads out the event details. Images are not stored. If you submit the result, the event details are kept until they are published or rejected (at most 14 days). Published events are public.</li>
 <li>Google's free Gemini tier may use submitted content to improve Google's products, so do not share private content.</li>
-<li>Messages to @${esc(env.IG_HANDLE)} on Instagram or Facebook, to our WhatsApp number or to our Telegram bot are handled through Meta's and Telegram's official APIs. We keep only a salted hash of your sender id, the message text with names and phone numbers removed, and links to the media (never the media itself), for at most 14 days, plus a hashed counter of how many of your events were published.</li>
+<li>Messages to @${esc(env.IG_HANDLE)} on Instagram, to our WhatsApp number or to our Telegram bot are handled through Meta's and Telegram's official APIs. We keep only a salted hash of your sender id, the message text with names and phone numbers removed, and links to the media (never the media itself), for at most 14 days, plus a hashed counter of how many of your events were published. So that we can answer you once, your sender id is also kept encrypted, readable only by our server, for at most 24 hours. We reply at most once per message.</li>
 <li>Events that need a manual check are reviewed in a GitHub issue that contains only the event details.</li>
-<li>Stories are never downloaded, read or analysed.</li>
+<li>Stories are never downloaded, read or analysed. When a listed venue mentions @${esc(env.IG_HANDLE)} in its story, we only note which venue and when.</li>
 </ul>
 <h2>Processors</h2>
 <ul>
@@ -62,9 +62,9 @@ const PAGES = {
 <ul>
 <li>Tekst, links og billeder, du deler med appen, sendes til vores Cloudflare Worker og til Google Gemini API, som læser detaljerne ud. Billeder gemmes ikke. Hvis du indsender resultatet, gemmes detaljerne, indtil de er offentliggjort eller afvist (højst 14 dage). Offentliggjorte arrangementer er offentlige.</li>
 <li>Googles gratis Gemini-niveau kan bruge indsendt indhold til at forbedre Googles produkter, så del ikke privat indhold.</li>
-<li>Beskeder til @${esc(env.IG_HANDLE)} på Instagram eller Facebook, til vores WhatsApp-nummer eller til vores Telegram-bot håndteres via Metas og Telegrams officielle API'er. Vi gemmer kun en saltet hash af dit afsender-id, beskedteksten uden navne og telefonnumre og links til medierne (aldrig selve medierne) i højst 14 dage, samt en hashet tæller over, hvor mange af dine arrangementer der er offentliggjort.</li>
+<li>Beskeder til @${esc(env.IG_HANDLE)} på Instagram, til vores WhatsApp-nummer eller til vores Telegram-bot håndteres via Metas og Telegrams officielle API'er. Vi gemmer kun en saltet hash af dit afsender-id, beskedteksten uden navne og telefonnumre og links til medierne (aldrig selve medierne) i højst 14 dage, samt en hashet tæller over, hvor mange af dine arrangementer der er offentliggjort. For at kunne svare dig én gang gemmer vi også dit afsender-id krypteret, så kun vores server kan læse det, i højst 24 timer. Vi svarer højst én gang pr. besked.</li>
 <li>Arrangementer, der skal tjekkes manuelt, gennemgås i et GitHub-issue, der kun indeholder arrangementets detaljer.</li>
-<li>Stories bliver aldrig downloadet, læst eller analyseret.</li>
+<li>Stories bliver aldrig downloadet, læst eller analyseret. Når et sted i appen nævner @${esc(env.IG_HANDLE)} i sin story, noterer vi kun hvilket sted og hvornår.</li>
 </ul>
 <h2>Databehandlere</h2>
 <ul>
@@ -172,7 +172,11 @@ export function renderPage(path, url, req, env) {
   if (!page) return null;
   const q = url.searchParams.get("lang");
   const lang = q === "da" || q === "en" ? q : /^da\b/i.test(req.headers.get("accept-language") || "") ? "da" : "en";
-  const { title, body } = page[lang](env);
+  const { title, body: main } = page[lang](env);
+  const code = key === "data-deletion" ? (url.searchParams.get("code") || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 32) : "";
+  const body = code
+    ? `<p><strong>${lang === "da" ? `Anmodning ${code} er modtaget. Dine beskeder i kø er slettet, og din tillidsregistrering slettes inden for 24 timer.` : `Request ${code} received. Your queued messages are deleted and your trust record is removed within 24 hours.`}</strong></p>${main}`
+    : main;
   return new Response(req.method === "HEAD" ? null : shell(lang, title, body, `/${key}`), {
     headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600", vary: "accept-language" },
   });

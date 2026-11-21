@@ -53,8 +53,13 @@ def same_event(a: dict, b: dict) -> bool:
     return similarity(a["t"], b["t"]) >= THRESHOLD
 
 
+SOCIAL = {"ig_dm", "ig_post", "wa", "tg", "fb", "app"}
+
+
 def _rank(e: dict, src_types: dict) -> tuple:
-    t = src_types.get(e["src"][0]["id"], "html_llm")
+    """Structured web data wins a merge, then LLM-read pages, then social/inbox items."""
+    first = e["src"][0]
+    t = "social" if first.get("kind") in SOCIAL else src_types.get(first["id"], "html_llm")
     filled = sum(1 for k in ("e", "v", "p", "img", "desc", "org") if e.get(k))
     return STRUCTURED.get(t, 3), -filled
 

@@ -45,3 +45,22 @@
 - M2: Worker deployed to https://eventborg.eventborg-worker.workers.dev (workers.dev subdomain auto-registered); KV namespace id is in wrangler.toml (not a secret). GH_TOKEN not set yet, so /submit skips repository_dispatch and the 15-min cron picks items up.
 - M2: `python -m pipeline push --test` (and workflow_dispatch input test_push) sends one event to the `test` topic only, to check FCM credentials without reaching subscribers.
 - M2: google-services.json lives in android/app/ (the app module M4 will create); both Firebase files stay gitignored. The same service account is a GitHub secret (event pushes) and a Worker secret (M3 story alerts).
+- M3: Meta docs (2026-11-21): Instagram DM/story-mention webhooks from people without a role on the app, and replies to them, need App Review (Advanced Access, instagram_manage_messages) plus Business Verification; Standard Access + Live is not enough. All Instagram code is built and works for app-role users now; public use waits on that review.
+- M3: Facebook Page feed/mention webhooks carry data of people without an app role, so they would need App Review too: skipped per spec. Page (Messenger) DMs are not handled.
+- M3: WhatsApp on our own number needs no App Review; the first 1,000 service replies per number per month are free (charged after, since Oct 2026), so the 900/month cap stays.
+- M3: Social tokens stay in the Worker; the inbox job uses authenticated /job/* endpoints (pull, media stream, ack+reply, Business Discovery pass-through). GitHub holds only INBOX_TOKEN.
+- M3: Replying needs the raw sender id, so it is kept AES-GCM-sealed (key derived from SIGNING_KEY) in the KV item, never leaves the Worker, and is refused after 23.5 h; privacy page says so.
+- M3: Sender hash = HMAC(SIGNING_KEY, channel|id), 20 hex; it is also KV key metadata, so DELETE/SLET finds a sender's items with one list call.
+- M3: Meta redeliveries are deduped by a hashed message id in the job's done list (also within one batch); no extra KV writes.
+- M3: Acks (KV delete + reply) run as a step after publish, so a failed publish never loses items or sends "Added".
+- M3: Inbox events persist in state/inbox.json and rejoin every run before dedupe; social/inbox sources rank last in merges so web data wins.
+- M3: Corroboration = dedupe match with an event from another source or an inbox event from another sender; trust grows only for event ids we didn't have (resends don't count).
+- M3: Past events and non-events are dropped silently; >120 days or unconfirmed location go to review and, if approved, appear once inside the horizon.
+- M3: Issues carry the fields as YAML plus a key marker; edits made before `approve` are published, also for issues whose state record was lost. The workflow also runs on `issues: labeled` (approve only).
+- M3: Business Discovery: ≤6 accounts per run, each every 90–120 min (spread by id hash), latest 8 posts ≤21 days old, captions batched 10 per call; X-App-Usage ≥80% or rate-limit codes pause polling; a source's first poll is silent. Posts of a listed source count as a trusted sender; img=null (CDN URLs expire, no re-hosting).
+- M3: Meta documents no owner for a forwarded story, so it matches the message text against handles/names (then the sender's username); story_mention resolves the sender via the User Profile API, cached as hash→source id for 7 days.
+- M3: /story-seen accepts a ts from the last 30 min; one report raises the alert (3 h cooldown bounds abuse; 2-report rule is an M7 idea).
+- M3: Telegram: /start gets a bilingual welcome, /delete and /slet work like DELETE, hidden text_link URLs are added to the text. POST /job/setup registers the webhook + secret token from the Worker's own secrets.
+- M3: Relative dates and missing years resolve against the post/message date (Python port of fixYear); the shared spec is split into intro / intro_batch / rules (d2) for single and batched calls.
+- M3: Phone scrub now also removes a number followed by a sentence period ("Ring 12345678.").
+- M3: Graph API version is a Worker var (v27.0, latest on 2026-11-21).

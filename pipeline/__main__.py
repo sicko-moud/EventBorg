@@ -17,8 +17,15 @@ def main() -> int:
     pu.add_argument("--out", default=str(ROOT / "out"))
     pu.add_argument("--dry-run", action="store_true")
     pu.add_argument("--test", action="store_true", help="send one event to the `test` topic only")
+    ak = sub.add_parser("ack", help="after publishing: delete handled inbox items in the Worker and send the replies")
+    ak.add_argument("--out", default=str(ROOT / "out"))
     a = ap.parse_args()
     load_env()
+    if a.cmd == "ack":
+        from .inbox import send_acks
+
+        print(" ".join(f"{k}={v}" for k, v in send_acks(Path(a.out)).items()))
+        return 0
     if a.cmd == "push":
         from .push import send_pending, send_test
 
@@ -28,6 +35,8 @@ def main() -> int:
     from .run import run
 
     res = run(Path(a.out), set(a.only.split(",")) if a.only else None, a.force, not a.no_llm)
+    for line in res["inbox_log"]:
+        print(f"inbox: {line}")
     print(f"\n{'source':24} {'type':12} {'status':16} {'raw':>5} {'kept':>5} {'final':>5}  drops")
     for row in res["report"]:
         drops = " ".join(f"{k}={v}" for k, v in row["drops"].items())

@@ -14,7 +14,7 @@ _LOC_ZIP = re.compile(r"(\d{4})\s+([A-Za-zÆØÅæøåÄÖÜäöüß .\-]+)")
 
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
-_PHONE = re.compile(r"(?:\+45\s?)?(?<![\d.,:/-])(?:\d{2} \d{2} \d{2} \d{2}|\d{4} \d{4}|\d{8})(?![\d.,:/-])")
+_PHONE = re.compile(r"(?:\+45\s?)?(?<![\d.,:/-])(?:\d{2} \d{2} \d{2} \d{2}|\d{4} \d{4}|\d{8})(?![\d,:/-]|\.\d)")
 
 
 def scrub(text: str) -> str:

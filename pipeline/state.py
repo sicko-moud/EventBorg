@@ -26,6 +26,7 @@ class State:
         self.llm: dict = _load(self.dir / "llm.json", {})
         self.seen: dict = _load(self.dir / "seen.json", {})
         self.meta: dict = _load(self.dir / "meta.json", {})
+        self.inbox: dict = _load(self.dir / "inbox.json", {})
         self.prev_events: list = _load(out / "events.json", {}).get("events", [])
         self.prev_sources: list = _load(out / "sources.json", {}).get("sources", [])
         self._sizes = (len(self.llm), len(self.seen))
@@ -42,3 +43,4 @@ class State:
         dump(self.dir / "llm.json", self.llm)
         dump(self.dir / "seen.json", self.seen)
         dump(self.dir / "meta.json", self.meta)
+        dump(self.dir / "inbox.json", self.inbox)

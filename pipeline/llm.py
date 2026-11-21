@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import json
 import time
@@ -62,12 +63,15 @@ class LLM:
         for k in [k for k, v in self.cache.items() if (today - date.fromisoformat(v["u"])).days > max_age_days]:
             del self.cache[k]
 
-    def generate(self, prompt: str, schema: dict, check=None):
+    def generate(self, prompt: str, schema: dict, check=None, images: list[tuple[str, bytes]] | None = None):
         """`check(result)` returns a reason when a reply looks incomplete. The fallback model's reply is then
-        final; if the fallback is down, the primary gets one more try and the fuller of its two replies wins."""
+        final; if the fallback is down, the primary gets one more try and the fuller of its two replies wins.
+        `images` are (mime type, bytes) sent inline with the prompt; they are never cached or stored."""
         gen = {"responseMimeType": "application/json", "responseSchema": schema, "temperature": 0.1,
                "maxOutputTokens": 32768, "thinkingConfig": {"thinkingLevel": env("GEMINI_THINKING", "low")}}
-        body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": gen}
+        parts = [{"text": prompt}] + [{"inline_data": {"mime_type": m, "data": base64.b64encode(b).decode()}}
+                                      for m, b in images or []]
+        body = {"contents": [{"role": "user", "parts": parts}], "generationConfig": gen}
         todo = [m for m in self.models if m not in self._exhausted]
         partial = None
         for i, model in enumerate(todo):
