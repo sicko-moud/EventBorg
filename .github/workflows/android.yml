@@ -115,7 +115,8 @@ jobs:
 
       - name: Timing
         if: always()
-        run: if [ -f shots/timing.txt ]; then echo "Cold start (CI emulator): $(cat shots/timing.txt)" >> "$GITHUB_STEP_SUMMARY"; fi
+        run: |
+          if [ -f shots/timing.txt ]; then echo "Cold start (CI emulator): $(cat shots/timing.txt)" >> "$GITHUB_STEP_SUMMARY"; fi
 
       - uses: actions/upload-artifact@v7
         if: always()
