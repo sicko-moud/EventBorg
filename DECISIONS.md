@@ -24,3 +24,5 @@
 - M1: All LLM calls share a LLM_MAX_SECONDS (480) wall-clock budget, so slow models can't push the job past its 14-min CI timeout.
 - M1: thinkingLevel "low" + maxOutputTokens 32768 (the only thinking setting both models accept); extracted descriptions capped at 200 chars so a 70-event page fits one reply.
 - M1: A source whose last fetch ended in llm_unavailable/llm_quota is due on every run until it succeeds, regardless of its `every` interval.
+- M1: flash-lite sometimes stops after 1–15 events on a 70-event page (same input gave 72, 1, 15). An html_llm reply with fewer than ¼ as many events as the page has distinct [links] counts as a lite failure → flash-latest; if flash is down, lite gets a second try and the fuller reply wins.
+- M1: html_llm stores its PROMPT_VERSION per source and re-extracts all pages once when it changes (x3 drops the truncated results cached under x2).

@@ -6,8 +6,9 @@ from bs4 import BeautifulSoup
 from ..llm import content_hash
 from . import Ctx, Skip
 
-PROMPT_VERSION = "x2"
+PROMPT_VERSION = "x3"
 MAX_CHARS = 14000
+_LINK = re.compile(r"\[(https?://[^\]\s]+)\]")
 
 PROMPT = """You extract public events from one web page of a venue or organizer in Sønderborg Municipality, Denmark.
 Today is {today}. Page URL: {url}
@@ -62,11 +63,21 @@ def page_text(html: str, base: str) -> str:
     return text[:MAX_CHARS]
 
 
+def short_reply(text: str, res) -> str | None:
+    """Flags a reply that lists far fewer events than the page has event-like links (flash-lite sometimes stops after one)."""
+    links = len(set(_LINK.findall(text)))
+    n = len(res.get("events") or []) if isinstance(res, dict) else 0
+    return f"only {n} events for {links} links" if links >= 10 and n * 4 < links else None
+
+
 def fetch(src: dict, ctx: Ctx) -> list[dict]:
     urls = [src["url"], *src.get("pages", [])]
     out = []
     http_cache = ctx.state.setdefault("http", {})
     pages = ctx.state.setdefault("pages", {})
+    if ctx.state.get("pv") != PROMPT_VERSION:
+        pages.clear()  # re-extract every page once after a prompt/validation change
+        ctx.state["pv"] = PROMPT_VERSION
     for url in urls:
         if url not in pages:
             http_cache.pop(url, None)
@@ -81,7 +92,8 @@ def fetch(src: dict, ctx: Ctx) -> list[dict]:
             if not ctx.llm.key or not ctx.llm.available:
                 http_cache.pop(url, None)
                 raise Skip("no_llm" if not ctx.llm.key else "llm_quota")
-            res = ctx.llm.generate(PROMPT.format(today=ctx.now.date().isoformat(), url=url, text=text), SCHEMA)
+            res = ctx.llm.generate(PROMPT.format(today=ctx.now.date().isoformat(), url=url, text=text), SCHEMA,
+                                   check=lambda r, t=text: short_reply(t, r))
             if res is None:
                 http_cache.pop(url, None)
                 raise Skip("llm_unavailable")

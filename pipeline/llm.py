@@ -62,22 +62,33 @@ class LLM:
         for k in [k for k, v in self.cache.items() if (today - date.fromisoformat(v["u"])).days > max_age_days]:
             del self.cache[k]
 
-    def generate(self, prompt: str, schema: dict):
+    def generate(self, prompt: str, schema: dict, check=None):
+        """`check(result)` returns a reason when a reply looks incomplete. The fallback model's reply is then
+        final; if the fallback is down, the primary gets one more try and the fuller of its two replies wins."""
         gen = {"responseMimeType": "application/json", "responseSchema": schema, "temperature": 0.1,
                "maxOutputTokens": 32768, "thinkingConfig": {"thinkingLevel": env("GEMINI_THINKING", "low")}}
         body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": gen}
-        for model in self.models:
-            if model in self._exhausted:
-                continue
+        todo = [m for m in self.models if m not in self._exhausted]
+        partial = None
+        for i, model in enumerate(todo):
             if not self.available:
                 break
             if model != self.models[0]:
                 self.fallbacks += 1
+            final = i == len(todo) - 1
             result, why = self._call(model, body)
+            if why is None and check and not final:
+                why = check(result)
+                partial = result if why else partial
             if why is None:
                 return result
-            more = model != self.models[-1]
-            print(f"  llm {model}: {why}{', trying fallback' if more else ''}")
+            print(f"  llm {model}: {why}{'' if final else ', trying fallback'}")
+        primary = self.models[0]
+        if partial is not None and self.available and primary not in self._exhausted:
+            result, why = self._call(primary, body)
+            print(f"  llm {primary}: second try {'failed: ' + why if why else 'done'}")
+            if why is None:
+                return max(partial, result, key=lambda r: len(json.dumps(r)))
         self.errors += 1
         return None
 

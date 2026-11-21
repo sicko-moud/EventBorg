@@ -11,7 +11,7 @@ Status
 
 Open issues
 - LLM: gemini-flash-lite-latest is primary; gemini-flash-latest only retries calls lite fails on (`llm_fallbacks=` in the run summary).
-- sonderborghus (72) and augustiana (2) extract fine on lite locally; check they show up in the next CI run.
+- Lite can return a truncated event list; html_llm checks events vs. page links and asks flash-latest (or lite again) for a second opinion.
 - ig handles still unknown for Mejeriet, Koncertsalen Alsion, Universe, Nordborghus, Skansen, Sønderborg Teater.
 
 Next step

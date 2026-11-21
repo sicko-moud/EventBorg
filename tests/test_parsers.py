@@ -118,6 +118,14 @@ def test_html_llm_page_text_marks_links():
     assert "[https://sonderborghus.dk/events/x/]" in text and "[https://billet.dk/1]" in text
 
 
+def test_html_llm_short_reply():
+    text = "\n".join(f"Event {i} [https://sonderborghus.dk/events/e{i}/]" for i in range(40))
+    assert html_llm.short_reply(text, {"events": [{}]}) == "only 1 events for 40 links"
+    assert html_llm.short_reply(text, {"events": [{}] * 10}) is None
+    assert html_llm.short_reply("Koncert [https://a.dk/1]", {"events": []}) is None
+    assert html_llm.short_reply(text, None) == "only 0 events for 40 links"
+
+
 def test_parse_price():
     assert parse_price("Gratis") == {"free": True}
     assert parse_price("Fri entré") == {"free": True}
