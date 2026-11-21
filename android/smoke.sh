@@ -64,6 +64,7 @@ tap text "Settings" && shot 07-settings
 tap text "Watching" && shot 08-watching
 if tap text "Set up"; then
   shot 09-disclosure
+  for _ in 1 2 3 4; do adb shell input swipe 160 520 160 120 200; sleep 1; done
   if tap text "Agree and open Android settings"; then
     shot 10-permission
     tap text "Allow" && shot 11-listener-settings

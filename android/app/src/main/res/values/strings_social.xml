@@ -36,8 +36,8 @@
     <string name="ask_title">Get notified about new events?</string>
     <string name="ask_body">EventBorg can tell you when new events appear and when a local venue posts a story. You choose which ones in Settings.</string>
 
-    <string name="w_paste">Paste an Instagram or Facebook link</string>
-    <string name="w_paste_hint">A profile, Page or group. You can also share it from the app to EventBorg.</string>
+    <string name="w_paste">Paste a link</string>
+    <string name="w_paste_hint">An Instagram or Facebook profile, Page or group. You can also share it from the app to EventBorg.</string>
     <string name="w_bad_link">That isn\'t an Instagram/Facebook profile, Page or group link.</string>
     <string name="w_profiles">Profiles</string>
     <string name="w_profiles_empty">Watch a profile to get an alert when it posts a story. Add one from a link or the suggestions below.</string>

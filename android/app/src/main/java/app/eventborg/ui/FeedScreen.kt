@@ -124,22 +124,25 @@ fun FeedScreen(open: (String) -> Unit) {
             modifier = Modifier.padding(pad).fillMaxSize(),
         ) {
             LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
-                if (strip.isNotEmpty()) {
-                    item("stories") {
-                        StoryStrip(
-                            strip,
-                            onOpen = { s ->
-                                g.scope.launch(Dispatchers.IO) { g.stories.seen(s.key) }
-                                ctx.openApp(s.url)
-                            },
-                            onMute = { s ->
-                                g.watch.setMuted(s.key, true)
-                                Toast.makeText(ctx, ctx.getString(R.string.muted_toast, s.name), Toast.LENGTH_LONG).show()
-                            },
-                        )
+                // Always present (possibly empty): an item inserted above the first visible one later would open off-screen.
+                item("top") {
+                    Column {
+                        if (strip.isNotEmpty()) {
+                            StoryStrip(
+                                strip,
+                                onOpen = { s ->
+                                    g.scope.launch(Dispatchers.IO) { g.stories.seen(s.key) }
+                                    ctx.openApp(s.url)
+                                },
+                                onMute = { s ->
+                                    g.watch.setMuted(s.key, true)
+                                    Toast.makeText(ctx, ctx.getString(R.string.muted_toast, s.name), Toast.LENGTH_LONG).show()
+                                },
+                            )
+                        }
+                        if (askNotify) NotifyAsk { g.prefs.setNotifAsked() }
                     }
                 }
-                if (askNotify) item("ask") { NotifyAsk { g.prefs.setNotifAsked() } }
                 item("quick") { QuickChips(f, prefs.studentsFirst) { g.prefs.setFilter(it) } }
                 val problem = status.problem
                 if (problem != null && data.events.isNotEmpty()) {

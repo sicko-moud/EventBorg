@@ -1,19 +1,19 @@
 # PROGRESS
 
-**M4 App core — done (2026-11-21).** Next: M5.
+**M5 App push, stories, watch list, share — built on branch `m5` (2026-11-21), not merged to main yet.** Next: M6.
 
 Status
-- android/: Kotlin + Compose M3 app (app.eventborg, minSdk 26, target 37, AGP 9.5.2, Gradle 9.9.2 wrapper). Built by `.github/workflows/android.yml` (no local SDK); release APK 2.2 MB (artifact `eventborg-release`). Commit message with `[smoke]` (or a manual run) adds an emulator smoke test: click-through screenshots + crash check (`android/smoke.sh`); last run passed, cold start 1.3 s on the CI emulator.
-- Screens: feed (search, quick chips, sticky sections incl. Ongoing, pull-to-refresh, offline/error/empty states), filter sheet (saved), detail (Custom Tab tickets, maps, calendar, share, save, star category/source), saved, sources + source page + "Suggest a source", settings (event/story topics, EN/DA, about/privacy).
-- Data: events.json/sources.json from Pages with ETag, cached in noBackupFilesDir; prefs in DataStore; FCM topics synced from settings (push handling itself is M5).
-- Worker: POST /suggest (deployed); inbox job opens `source`-labelled issues. Privacy page mentions it.
-- Students (ad hoc, branch `students`, not merged yet): IDA via new `sitemap` adapter (5 local events today, fill spread over ~9 runs, push-silent), 10 SDU student associations as social sources, `students` tag; app "For students" row + chip first + filter + setting (student and youth 15–30 events). APK 0.4.1.
-- Tests: 42 pytest + 13 node (all pass).
+- Push: FCM service handles event / grouped / story data messages on three channels (New events, Story alerts, Group posts); pushed events go into the cache at once (pushed.json); Save and Add-to-calendar actions; onNewToken resubscribes topics. Android 13+ permission explained once on the feed.
+- Story strip (GET /stories + pushes + local detections, 24 h, tap opens Instagram/Facebook and dims, long-press mutes). Story alerts deduped by source within 3 h.
+- Notification listener (opt-in; component disabled until the disclosure is accepted): Instagram/Facebook only, matches watch list + listed handles/names, hide-original, optional /story-seen relay. Onboarding tips incl. "Restricted setting" help for sideloaded APKs.
+- Watching tab: profiles and groups by pasted/shared link, suggestions from sources.json, ✓ on first catch, mute/remove; Group posts (7 days, on-phone only) with Open / Add as event.
+- Share target + "Add your event" (paste text/link, pick image, live channels from GET /channels) → /extract → editable draft → /submit.
+- Tests: 42 pytest + 13 node + Kotlin unit tests (link parser, matchers, heuristic) in CI. APK 0.5.0.
 
 Open issues
+- Not tested on a real phone: FCM delivery, the listener against real Instagram/Facebook notification texts (formats are guessed; adjust matcher/tests once seen), Facebook PendingIntent "Open".
 - Keys still missing from M3: META_APP_SECRET, META_TOKEN, IG_USER_ID, GH_TOKEN (+ optional WA_*).
-- Only checked on the CI emulator; not yet on a real phone (CI APKs are debug-signed per run: uninstall between builds). FCM topic sync untested (emulator Play services too old).
-- No app baseline profile yet (library profiles only) and no release keystore: M6.
+- No app baseline profile and no release keystore yet (M6).
 
-Next step (M5)
-- Push handling (Event / Story alerts / Group posts channels, Android 13 permission flow, insert pushed events into the cache, onNewToken → resync topics), story strip, notification listener + disclosure, watch list, group-post alerts, share target, "Add your event".
+Next step (M6)
+- Merge `m5` into main, then size/performance pass, baseline profile, README setup guide, keep-alive workflow.

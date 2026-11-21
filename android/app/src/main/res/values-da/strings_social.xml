@@ -36,8 +36,8 @@
     <string name="ask_title">Vil du have besked om nye arrangementer?</string>
     <string name="ask_body">EventBorg kan give besked, når der kommer nye arrangementer, og når et lokalt sted lægger en story op. Du vælger hvilke under Indstillinger.</string>
 
-    <string name="w_paste">Indsæt et Instagram- eller Facebook-link</string>
-    <string name="w_paste_hint">En profil, side eller gruppe. Du kan også dele den fra appen til EventBorg.</string>
+    <string name="w_paste">Indsæt et link</string>
+    <string name="w_paste_hint">En Instagram- eller Facebook-profil, -side eller -gruppe. Du kan også dele den fra appen til EventBorg.</string>
     <string name="w_bad_link">Det er ikke et link til en Instagram-/Facebook-profil, side eller gruppe.</string>
     <string name="w_profiles">Profiler</string>
     <string name="w_profiles_empty">Følg en profil for at få besked, når den lægger en story op. Tilføj en fra et link eller forslagene nedenfor.</string>
