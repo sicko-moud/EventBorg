@@ -1,6 +1,6 @@
 # PROGRESS
 
-**M2 Push sender + Worker app endpoints — code done and tested locally (2026-11-21); not deployed (needs accounts).** Next: deploy, then M3.
+**M2 Push sender + Worker app endpoints — done; Worker live (2026-11-21); FCM pending the Firebase files.** Next: FCM secret + test push, then M3.
 
 Status
 - M1 pipeline live: https://sicko-moud.github.io/EventBorg/events.json (~314 events, 10+ sources).
@@ -9,9 +9,12 @@ Status
 - Shared extraction prompt/schema: shared/extract.json.
 - Tests: 28 pytest + 6 node (`node --test worker/test/worker.test.js`).
 
-Needed before going live (user)
-- Cloudflare account → `cd worker; npx wrangler login; npx wrangler kv namespace create KV` (paste id in wrangler.toml); secrets GEMINI_API_KEY, SIGNING_KEY, GH_TOKEN (fine-grained PAT, this repo, Contents read/write), optional CONTACT_EMAIL; `npm run deploy`.
-- Firebase project (Spark) → service-account JSON → GitHub secret FCM_SERVICE_ACCOUNT.
+Live
+- Worker: https://eventborg.eventborg-worker.workers.dev (secrets GEMINI_API_KEY, SIGNING_KEY; KV c2c5b060…). Smoke-tested /extract, /submit, pages.
+
+Still needed
+- google-services.json + firebase-service-account.json in the project root (both gitignored) → move the first to android/app/, set FCM_SERVICE_ACCOUNT as GitHub + Worker secret, `python -m pipeline push --test`.
+- GH_TOKEN Worker secret (fine-grained PAT, this repo, Contents read/write) for repository_dispatch.
 
 Open issues
 - Gemini free tier 503s often; Worker retries primary→fallback→primary in 45 s, else 503 llm_unavailable.

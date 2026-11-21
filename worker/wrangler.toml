@@ -14,10 +14,10 @@ TG_BOT = ""
 
 # Secrets (wrangler secret put): GEMINI_API_KEY, SIGNING_KEY, GH_TOKEN; optional CONTACT_EMAIL.
 
-# Create with: npx wrangler kv namespace create KV  — then paste the id here.
+# Created with: npx wrangler kv namespace create KV
 [[kv_namespaces]]
 binding = "KV"
-id = "00000000000000000000000000000000"
+id = "c2c5b0600b484903969d2ba755f39b96"
 
 [triggers]
 crons = ["* * * * *"]

@@ -42,3 +42,5 @@
 - M2: Dispatch throttle: KV lock (60 s TTL) + pending flag flushed by a 1-minute Worker cron (~1.4k KV reads/day; writes only per item).
 - M2: App submissions store sender=null (no device id or IP) and never count as a trusted sender.
 - M2: /privacy, /data-deletion, /organizers in EN/DA (?lang= or Accept-Language); / shows /organizers. The DELETE/SLET command and Meta's deletion callback are described now and built in M3.
+- M2: Worker deployed to https://eventborg.eventborg-worker.workers.dev (workers.dev subdomain auto-registered); KV namespace id is in wrangler.toml (not a secret). GH_TOKEN not set yet, so /submit skips repository_dispatch and the 15-min cron picks items up.
+- M2: `python -m pipeline push --test` (and workflow_dispatch input test_push) sends one event to the `test` topic only, to check FCM credentials without reaching subscribers.

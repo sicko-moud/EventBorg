@@ -11,6 +11,10 @@ on:
         description: "Ignore per-source refresh intervals"
         type: boolean
         default: false
+      test_push:
+        description: "Send one test push to the `test` topic"
+        type: boolean
+        default: false
 
 concurrency:
   group: pipeline
@@ -65,3 +69,9 @@ jobs:
         env:
           FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
         run: python -m pipeline push --out out
+
+      - name: Test push
+        if: inputs.test_push
+        env:
+          FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
+        run: python -m pipeline push --out out --test

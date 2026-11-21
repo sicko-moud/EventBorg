@@ -8,3 +8,9 @@ out/
 worker/node_modules/
 worker/.wrangler/
 worker/.dev.vars
+
+# Firebase (never commit)
+google-services.json
+firebase-service-account.json
+*service-account*.json
+*firebase-adminsdk*.json

@@ -7,7 +7,7 @@ from pathlib import Path
 
 import requests
 
-from .config import TZ, env
+from .config import ROOT, TZ, env
 from .llm import _error_message
 from .state import _load
 
@@ -111,6 +111,7 @@ class FCM:
         self.sa = sa
         self.url = f"https://fcm.googleapis.com/v1/projects/{sa['project_id']}/messages:send"
         self.token: str | None = None
+        self.last: str | None = None
 
     def _auth(self) -> str:
         from cryptography.hazmat.primitives import hashes, serialization
@@ -139,8 +140,36 @@ class FCM:
                     delay = 2 * (attempt + 1)
                 time.sleep(delay)
                 continue
-            return None if r.ok else f"HTTP {r.status_code}: {_error_message(r)}"
+            if r.ok:
+                self.last = r.json().get("name")
+                return None
+            return f"HTTP {r.status_code}: {_error_message(r)}"
         return "retries exhausted"
+
+
+def service_account() -> dict | None:
+    """FCM_SERVICE_ACCOUNT holds the JSON itself (CI secret) or, locally, a path to the file."""
+    v = env("FCM_SERVICE_ACCOUNT")
+    if not v:
+        return None
+    return json.loads(v if v.lstrip().startswith("{") else (ROOT / v).read_text(encoding="utf-8"))
+
+
+def send_test(out: Path) -> dict:
+    """Sends the soonest upcoming event to the `test` topic only, to check credentials and payload format."""
+    sa = service_account()
+    if not sa:
+        return {"sent": 0, "errors": 1, "why": "FCM_SERVICE_ACCOUNT not set"}
+    now = datetime.now(TZ)
+    events = [e for e in _load(out / "events.json", {}).get("events", []) if datetime.fromisoformat(e["s"]) > now]
+    e = min(events, key=lambda x: x["s"])
+    fcm = FCM(sa)
+    err = fcm.send(message(["test"], event_data(e)))
+    if err:
+        print(f"test push failed: {err}")
+        return {"sent": 0, "errors": 1, "project": sa["project_id"]}
+    print(f"test push ok: {fcm.last} ({e['t']})")
+    return {"sent": 1, "errors": 0, "project": sa["project_id"]}
 
 
 def send_pending(out: Path, dry_run: bool = False) -> dict:
@@ -150,13 +179,13 @@ def send_pending(out: Path, dry_run: bool = False) -> dict:
     todo = [events[i] for i in ids
             if i in events and events[i].get("st", "ok") == "ok" and datetime.fromisoformat(events[i]["s"]) > now]
     msgs = plan(todo)
-    sa = env("FCM_SERVICE_ACCOUNT")
+    sa = service_account()
     if dry_run or not sa:
         for m in msgs:
             d = m["data"]
             print(f"dry-run {d['type']:5} {d.get('id') or d['c'] + ' x' + d['n']:16} {len(_json(d).encode()):5}B  {m['condition']}")
         return {"events": len(todo), "messages": len(msgs), "sent": 0, "dry_run": True}
-    fcm, sent, errors = FCM(json.loads(sa)), 0, []
+    fcm, sent, errors = FCM(sa), 0, []
     for m in msgs:
         err = fcm.send(m)
         if err:

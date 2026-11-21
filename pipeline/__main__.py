@@ -16,12 +16,13 @@ def main() -> int:
     pu = sub.add_parser("push", help="send the pushes the last run scheduled (dry run without FCM_SERVICE_ACCOUNT)")
     pu.add_argument("--out", default=str(ROOT / "out"))
     pu.add_argument("--dry-run", action="store_true")
+    pu.add_argument("--test", action="store_true", help="send one event to the `test` topic only")
     a = ap.parse_args()
     load_env()
     if a.cmd == "push":
-        from .push import send_pending
+        from .push import send_pending, send_test
 
-        res = send_pending(Path(a.out), a.dry_run)
+        res = send_test(Path(a.out)) if a.test else send_pending(Path(a.out), a.dry_run)
         print(" ".join(f"{k}={v}" for k, v in res.items()))
         return 1 if res.get("errors") and not res.get("sent") else 0
     from .run import run
