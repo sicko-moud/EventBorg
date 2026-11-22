@@ -181,18 +181,16 @@ fun catLabel(c: String): Int = when (c) {
     else -> R.string.cat_other
 }
 
+// Category art: the emoji is drawn without colour on the raised tone (Graphite), so it only hints at the category.
 private val CAT_ART = mapOf(
-    "music" to ("🎵" to 210f), "nightlife" to ("🌙" to 265f), "theatre_culture" to ("🎭" to 330f),
-    "exhibitions" to ("🖼️" to 30f), "food_drink" to ("🍽️" to 15f), "sports" to ("⚽" to 120f),
-    "family_kids" to ("🧸" to 45f), "students" to ("🎓" to 235f), "talks_learning" to ("🎤" to 190f),
-    "markets" to ("🛍️" to 300f), "outdoor_nature" to ("🌲" to 140f), "festivals" to ("🎪" to 0f),
-    "community" to ("🤝" to 170f), "business" to ("💼" to 220f),
+    "music" to "🎵", "nightlife" to "🌙", "theatre_culture" to "🎭",
+    "exhibitions" to "🖼️", "food_drink" to "🍽️", "sports" to "⚽",
+    "family_kids" to "🧸", "students" to "🎓", "talks_learning" to "🎤",
+    "markets" to "🛍️", "outdoor_nature" to "🌲", "festivals" to "🎪",
+    "community" to "🤝", "business" to "💼",
 )
 
-fun catEmoji(c: String) = CAT_ART[c]?.first ?: "✨"
-
-fun catColor(c: String, dark: Boolean): Color =
-    Color.hsl(CAT_ART[c]?.second ?: 55f, 0.5f, if (dark) 0.27f else 0.87f)
+fun catEmoji(c: String) = CAT_ART[c] ?: "✨"
 
 fun kindLabel(kind: String): Int = when (kind) {
     "ig_dm", "ig_post" -> R.string.kind_ig

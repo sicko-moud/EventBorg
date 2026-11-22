@@ -1,5 +1,6 @@
 package app.eventborg.ui
 
+import app.eventborg.ui.theme.G
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,8 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -35,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.TopBar
 import app.eventborg.R
 import app.eventborg.data.ZONE
 import app.eventborg.graph
@@ -52,9 +54,9 @@ fun GroupPostsScreen(back: () -> Unit, go: (Any) -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            TopBar(
                 title = { Text(stringResource(R.string.gp_screen)) },
-                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back)) } },
             )
         },
     ) { pad ->
@@ -76,7 +78,7 @@ fun GroupPostsScreen(back: () -> Unit, go: (Any) -> Unit) {
                                 model = g.watch.pic(p.id),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)),
+                                modifier = Modifier.size(72.dp).clip(G.Radius),
                             )
                             Spacer(Modifier.width(12.dp))
                         }
@@ -86,7 +88,7 @@ fun GroupPostsScreen(back: () -> Unit, go: (Any) -> Unit) {
                         TextButton(onClick = { ctx.findActivity()?.let { openGroupPost(it, p.id) } }) { Text(stringResource(R.string.open)) }
                         TextButton(onClick = { go(DraftR(post = p.id)) }) { Text(stringResource(R.string.add_as_event)) }
                         Spacer(Modifier.weight(1f))
-                        IconButton(onClick = { g.watch.removePost(p.id) }) { Icon(Icons.Filled.Delete, stringResource(R.string.remove)) }
+                        IconButton(onClick = { g.watch.removePost(p.id) }) { Icon(Icons.Outlined.Delete, stringResource(R.string.remove)) }
                     }
                 }
                 HorizontalDivider(Modifier.padding(horizontal = 16.dp))

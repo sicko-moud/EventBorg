@@ -1,5 +1,8 @@
 package app.eventborg.ui
 
+import androidx.compose.material3.HorizontalDivider
+import app.eventborg.ui.theme.G
+import app.eventborg.ui.theme.switchColors
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DateRangePicker
@@ -43,6 +46,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import app.eventborg.ui.theme.SecondaryButton
+import app.eventborg.ui.theme.PrimaryButton
 import app.eventborg.R
 import app.eventborg.data.CATEGORIES
 import app.eventborg.data.DATE_ANY
@@ -95,7 +100,7 @@ fun FilterSheet(f: Filter, data: Data, onChange: (Filter) -> Unit, onDismiss: ()
                     FilterChip(
                         c in f.cats,
                         { onChange(f.copy(cats = if (c in f.cats) f.cats - c else f.cats + c)) },
-                        { Text(catEmoji(c) + " " + stringResource(catLabel(c))) },
+                        { Text(stringResource(catLabel(c))) },
                     )
                 }
             }
@@ -115,8 +120,8 @@ fun FilterSheet(f: Filter, data: Data, onChange: (Filter) -> Unit, onDismiss: ()
 
             Spacer(Modifier.padding(8.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = { onChange(Filter()) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.f_reset)) }
-                Button(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.done)) }
+                SecondaryButton(onClick = { onChange(Filter()) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.f_reset)) }
+                PrimaryButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.done)) }
             }
         }
     }
@@ -148,12 +153,10 @@ fun FilterSheet(f: Filter, data: Data, onChange: (Filter) -> Unit, onDismiss: ()
 
 @Composable
 fun Heading(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp).semantics { heading() },
-    )
+    Column(Modifier.fillMaxWidth().padding(top = 20.dp, bottom = 4.dp)) {
+        Text(text.uppercase(), style = MaterialTheme.typography.labelSmall, color = G.Faint, modifier = Modifier.semantics { heading() })
+        HorizontalDivider(Modifier.padding(top = 8.dp), color = G.Line)
+    }
 }
 
 @Composable
@@ -164,9 +167,9 @@ fun SwitchRow(text: String, on: Boolean, subtitle: String? = null, set: (Boolean
     ) {
         Column(Modifier.weight(1f).padding(vertical = 8.dp)) {
             Text(text, style = MaterialTheme.typography.bodyLarge)
-            if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (subtitle != null) Text(subtitle, style = MaterialTheme.typography.bodySmall)
         }
-        Switch(checked = on, onCheckedChange = null)
+        Switch(checked = on, onCheckedChange = null, colors = switchColors())
     }
 }
 
@@ -174,9 +177,9 @@ fun SwitchRow(text: String, on: Boolean, subtitle: String? = null, set: (Boolean
 private fun Choice(value: String?, options: Map<String, String>, allLabel: String, set: (String?) -> Unit) {
     var open by remember { mutableStateOf(false) }
     Box {
-        OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+        SecondaryButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
             Text(value?.let { options[it] ?: it } ?: allLabel, modifier = Modifier.weight(1f))
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
+            Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             DropdownMenuItem(text = { Text(allLabel) }, onClick = { set(null); open = false })

@@ -1,5 +1,7 @@
 package app.eventborg.ui
 
+import androidx.compose.foundation.border
+import app.eventborg.ui.theme.G
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
@@ -19,8 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -203,7 +205,7 @@ fun FeedScreen(open: (String) -> Unit) {
 @Composable
 private fun SearchBar(query: String, onQuery: (String) -> Unit, active: Int, onFilter: () -> Unit) {
     val focus = LocalFocusManager.current
-    Surface(color = MaterialTheme.colorScheme.surface) {
+    Surface(color = G.Bg) {
         Row(
             Modifier.fillMaxWidth().statusBarsPadding().padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 4.dp),
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -211,21 +213,25 @@ private fun SearchBar(query: String, onQuery: (String) -> Unit, active: Int, onF
             TextField(
                 value = query,
                 onValueChange = onQuery,
-                modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                modifier = Modifier.weight(1f).heightIn(min = 52.dp).border(1.dp, G.Line, G.Radius),
                 placeholder = { Text(stringResource(R.string.search_hint), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                leadingIcon = { Icon(Icons.Outlined.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
-                        IconButton(onClick = { onQuery("") }) { Icon(Icons.Filled.Clear, stringResource(R.string.clear_search)) }
+                        IconButton(onClick = { onQuery("") }) { Icon(Icons.Outlined.Clear, stringResource(R.string.clear_search)) }
                     }
                 },
                 singleLine = true,
-                shape = RoundedCornerShape(28.dp),
-                colors = TextFieldDefaults.colors(focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent),
+                shape = G.Radius,
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent,
+                    focusedContainerColor = G.Surface, unfocusedContainerColor = G.Surface, cursorColor = G.Text,
+                    focusedLeadingIconColor = G.Muted, unfocusedLeadingIconColor = G.Muted, unfocusedPlaceholderColor = G.Faint, focusedPlaceholderColor = G.Faint,
+                ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { focus.clearFocus() }),
             )
-            BadgedBox(badge = { if (active > 0) Badge { Text("$active") } }) {
+            BadgedBox(badge = { if (active > 0) Badge(containerColor = G.Accent, contentColor = G.Bg) { Text("$active") } }) {
                 IconButton(onClick = onFilter) { Icon(Ic.Filter, stringResource(R.string.filters)) }
             }
         }

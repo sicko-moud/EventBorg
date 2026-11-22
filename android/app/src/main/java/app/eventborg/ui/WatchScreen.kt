@@ -1,5 +1,8 @@
 package app.eventborg.ui
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import app.eventborg.ui.theme.G
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +21,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -51,6 +54,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.TopBar
+import app.eventborg.ui.theme.Field
+import app.eventborg.ui.theme.PrimaryButton
 import app.eventborg.R
 import app.eventborg.data.Source
 import app.eventborg.graph
@@ -105,12 +111,12 @@ fun WatchScreen(link: String?, openListener: () -> Unit, openPosts: () -> Unit, 
         if (l != null) adding = l
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_watch)) }) }) { pad ->
+    Scaffold(topBar = { TopBar(title = { Text(stringResource(R.string.tab_watch)) }) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 24.dp)) {
             item("detect") { DetectCard(prefs.listen && granted, openListener) }
             item("add") {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                    OutlinedTextField(
+                    Field(
                         input,
                         { input = it.take(500); bad = false },
                         modifier = Modifier.fillMaxWidth(),
@@ -166,7 +172,7 @@ fun WatchScreen(link: String?, openListener: () -> Unit, openPosts: () -> Unit, 
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = G.Muted)
                 }
             }
             if (suggestions.isNotEmpty()) {
@@ -230,11 +236,12 @@ private fun Heading2(text: String) {
 @Composable
 private fun DetectCard(on: Boolean, open: () -> Unit) {
     Surface(
-        color = if (on) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.secondaryContainer,
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clickable(onClick = open),
+        color = G.Surface,
+        shape = G.Radius,
+        border = G.Border,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp).clip(G.Radius).clickable(onClick = open),
     ) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(if (on) R.string.w_detect_on else R.string.w_detect_off), style = MaterialTheme.typography.titleSmall)
                 Text(
@@ -244,8 +251,8 @@ private fun DetectCard(on: Boolean, open: () -> Unit) {
                 )
             }
             Spacer(Modifier.width(8.dp))
-            if (on) Icon(Icons.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
-            else Button(onClick = open) { Text(stringResource(R.string.set_up)) }
+            if (on) StatusLabel(stringResource(R.string.on))
+            else PrimaryButton(onClick = open) { Text(stringResource(R.string.set_up)) }
         }
     }
 }
@@ -270,7 +277,7 @@ private fun WatchRow(
                 Text(title, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, false))
                 if (caught) {
                     Spacer(Modifier.width(6.dp))
-                    Icon(Icons.Filled.CheckCircle, stringResource(R.string.w_caught), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(0.dp))
+                    Icon(Icons.Outlined.CheckCircle, stringResource(R.string.w_caught), tint = G.Accent, modifier = Modifier.size(16.dp))
                 }
             }
             Text(
@@ -278,11 +285,11 @@ private fun WatchRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (tip != null) Text(tip, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+            if (tip != null) Text(tip, style = MaterialTheme.typography.bodySmall, color = G.Faint)
         }
         TextButton(onClick = onOpen) { Text(openLabel) }
         Box {
-            IconButton(onClick = { menu = true }) { Icon(Icons.Filled.MoreVert, stringResource(R.string.more_options, title)) }
+            IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, stringResource(R.string.more_options, title)) }
             DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                 DropdownMenuItem(
                     text = { Text(stringResource(if (muted) R.string.unmute else R.string.mute)) },
@@ -324,7 +331,7 @@ private fun AddDialog(l: Link, listed: Boolean, close: () -> Unit, add: (String)
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                OutlinedTextField(
+                Field(
                     name,
                     { name = it.take(80) },
                     label = { Text(stringResource(R.string.w_name)) },
@@ -336,7 +343,7 @@ private fun AddDialog(l: Link, listed: Boolean, close: () -> Unit, add: (String)
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (listed) Text(stringResource(R.string.w_listed), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                Text(stringResource(R.string.w_local_only), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                Text(stringResource(R.string.w_local_only), style = MaterialTheme.typography.bodySmall, color = G.Faint)
             }
         },
         confirmButton = { TextButton(onClick = { add(name.trim()) }, enabled = valid) { Text(stringResource(R.string.w_watch)) } },

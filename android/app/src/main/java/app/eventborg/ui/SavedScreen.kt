@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.TopBar
 import app.eventborg.R
 import app.eventborg.data.CATEGORIES
 import app.eventborg.graph
@@ -36,7 +37,7 @@ fun SavedScreen(open: (String) -> Unit, openSource: (String) -> Unit) {
     val saved = remember(data, prefs.saved, now) { data.events.filter { it.id in prefs.saved && it.end.isAfter(now) } }
     val sources = remember(data, prefs.favSrcs) { data.sources.filter { it.id in prefs.favSrcs } }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_saved)) }) }) { pad ->
+    Scaffold(topBar = { TopBar(title = { Text(stringResource(R.string.tab_saved)) }) }) { pad ->
         LazyColumn(Modifier.padding(pad).fillMaxSize(), contentPadding = PaddingValues(bottom = 16.dp)) {
             item("h_events") { SectionHeader(stringResource(R.string.saved_events)) }
             if (saved.isEmpty()) {
@@ -50,7 +51,7 @@ fun SavedScreen(open: (String) -> Unit, openSource: (String) -> Unit) {
             item("cats") {
                 FlowRow(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CATEGORIES.forEach { c ->
-                        FilterChip(c in prefs.favCats, { g.prefs.toggleCat(c) }, { Text(catEmoji(c) + " " + stringResource(catLabel(c))) })
+                        FilterChip(c in prefs.favCats, { g.prefs.toggleCat(c) }, { Text(stringResource(catLabel(c))) })
                     }
                 }
             }

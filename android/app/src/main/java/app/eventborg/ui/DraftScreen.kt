@@ -18,9 +18,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowDropDown
+import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -54,6 +54,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.eventborg.ui.theme.TopBar
+import app.eventborg.ui.theme.Field
+import app.eventborg.ui.theme.SecondaryButton
+import app.eventborg.ui.theme.PrimaryButton
 import app.eventborg.R
 import app.eventborg.data.CATEGORIES
 import app.eventborg.data.Draft
@@ -108,9 +112,9 @@ fun DraftScreen(r: DraftR, back: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            TopBar(
                 title = { Text(stringResource(R.string.d_title)) },
-                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back)) } },
             )
         },
     ) { pad ->
@@ -193,22 +197,22 @@ private fun DraftForm(d: Draft, tok: String?, onSent: () -> Unit) {
         Text(stringResource(R.string.d_check), style = MaterialTheme.typography.bodyMedium)
         Field(title, { title = it.take(200) }, stringResource(R.string.d_f_title) + " *")
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { picking = 0 }, modifier = Modifier.weight(1.4f).heightIn(min = 56.dp)) {
-                Icon(Icons.Filled.DateRange, null)
+            SecondaryButton(onClick = { picking = 0 }, modifier = Modifier.weight(1.4f).heightIn(min = 56.dp)) {
+                Icon(Icons.Outlined.DateRange, null)
                 Spacer(Modifier.padding(3.dp))
                 Text(show(date) ?: (stringResource(R.string.d_f_date) + " *"))
             }
-            OutlinedTextField(
+            Field(
                 time, { time = it.take(5) }, Modifier.weight(1f), label = { Text(stringResource(R.string.d_f_time)) },
                 placeholder = { Text("19:30") }, singleLine = true, isError = !timeOk,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { picking = 1 }, modifier = Modifier.weight(1.4f).heightIn(min = 56.dp)) {
+            SecondaryButton(onClick = { picking = 1 }, modifier = Modifier.weight(1.4f).heightIn(min = 56.dp)) {
                 Text(show(endDate) ?: stringResource(R.string.d_f_end_date))
             }
-            OutlinedTextField(
+            Field(
                 endTime, { endTime = it.take(5) }, Modifier.weight(1f), label = { Text(stringResource(R.string.d_f_end_time)) },
                 singleLine = true, isError = !endOk, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             )
@@ -220,19 +224,19 @@ private fun DraftForm(d: Draft, tok: String?, onSent: () -> Unit) {
         Field(url, { url = it.take(500) }, stringResource(R.string.d_f_link), KeyboardType.Uri, isError = !urlOk)
         Field(org, { org = it.take(120) }, stringResource(R.string.d_f_org))
         Box {
-            OutlinedButton(onClick = { catMenu = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                Text(catEmoji(cat) + "  " + stringResource(catLabel(cat)), modifier = Modifier.weight(1f))
-                Icon(Icons.Filled.ArrowDropDown, null)
+            SecondaryButton(onClick = { catMenu = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Text(stringResource(catLabel(cat)), modifier = Modifier.weight(1f))
+                Icon(Icons.Outlined.ArrowDropDown, null)
             }
             DropdownMenu(expanded = catMenu, onDismissRequest = { catMenu = false }) {
                 CATEGORIES.forEach { c ->
-                    DropdownMenuItem(text = { Text(catEmoji(c) + "  " + stringResource(catLabel(c))) }, onClick = { cat = c; catMenu = false })
+                    DropdownMenuItem(text = { Text(stringResource(catLabel(c))) }, onClick = { cat = c; catMenu = false })
                 }
             }
         }
-        OutlinedTextField(desc, { desc = it.take(1500) }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.d_f_desc)) }, minLines = 3)
+        Field(desc, { desc = it.take(1500) }, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.d_f_desc)) }, minLines = 3)
         Text(stringResource(R.string.d_public), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Button(
+        PrimaryButton(
             onClick = {
                 sending = true
                 scope.launch {
@@ -278,7 +282,7 @@ private fun DraftForm(d: Draft, tok: String?, onSent: () -> Unit) {
 
 @Composable
 private fun Field(value: String, set: (String) -> Unit, label: String, type: KeyboardType = KeyboardType.Text, isError: Boolean = false) {
-    OutlinedTextField(
+    Field(
         value, set, Modifier.fillMaxWidth(), label = { Text(label) }, singleLine = true, isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = type),
     )

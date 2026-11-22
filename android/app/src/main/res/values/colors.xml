@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="window_bg">#FAF9FD</color>
-    <color name="launcher_bg">#0B5FA5</color>
+    <color name="window_bg">#101010</color>
+    <color name="launcher_bg">#161616</color>
+    <color name="notif_accent">#C8B89A</color>
 </resources>

@@ -7,7 +7,9 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import android.graphics.Color
 import app.eventborg.data.Filter
 import app.eventborg.notify.ACT_CAT
 import app.eventborg.notify.ACT_DRAFT_POST
@@ -17,11 +19,11 @@ import app.eventborg.notify.X_ID
 import app.eventborg.ui.AppNav
 import app.eventborg.ui.DetailR
 import app.eventborg.ui.DraftR
-import app.eventborg.ui.EventBorgTheme
 import app.eventborg.ui.FeedR
 import app.eventborg.ui.GroupPostsR
 import app.eventborg.ui.Lang
 import app.eventborg.ui.WatchR
+import app.eventborg.ui.theme.GraphiteTheme
 import app.eventborg.watch.isWatchShare
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -33,10 +35,11 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // Dark only: light bar icons over the transparent bars, whatever the system theme.
+        enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) route(intent)
-        setContent { EventBorgTheme { AppNav(links) } }
+        setContent { GraphiteTheme { AppNav(links) } }
     }
 
     override fun onNewIntent(intent: Intent) {

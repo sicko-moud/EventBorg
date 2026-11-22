@@ -1,16 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar silhouette of the ticket logo (alpha only). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
+    android:viewportWidth="60"
+    android:viewportHeight="60">
     <group
-        android:translateX="-30"
-        android:translateY="-29">
+        android:translateX="-20"
+        android:translateY="-20">
+        <path
+            android:pathData="M24,34h52v10a6,6 0,0 0,0 12v10H24V56a6,6 0,0 0,0 -12z"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineJoin="round"
+            android:strokeWidth="4.5" />
+        <path
+            android:pathData="M58,38v3.5M58,44.5v3.5M58,51v3.5M58,57.5v3.5"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="3.5" />
         <path
             android:fillColor="#FFFFFF"
-            android:pathData="M37,38h34a5,5 0,0 1,5 5v26a5,5 0,0 1,-5 5h-34a5,5 0,0 1,-5 -5v-26a5,5 0,0 1,5 -5zM36,52v8c4,0 6,-3 7,-3s3,3 11,3s7,-3 11,-3s5,3 7,3v-8z" />
-        <path
-            android:fillColor="#FFFFFF"
-            android:pathData="M42,32h5v8h-5zM61,32h5v8h-5z" />
+            android:pathData="M36,50a5,5 0,1 0,10 0a5,5 0,1 0,-10 0z" />
     </group>
 </vector>

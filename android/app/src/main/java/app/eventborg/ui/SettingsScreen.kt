@@ -33,6 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.G
+import app.eventborg.ui.theme.TopBar
 import app.eventborg.BuildConfig
 import app.eventborg.R
 import app.eventborg.data.NOTIFY_ALL
@@ -41,7 +43,7 @@ import app.eventborg.data.NOTIFY_OFF
 import app.eventborg.graph
 import app.eventborg.notify.Listen
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +57,7 @@ fun SettingsScreen(openListener: () -> Unit, openAddEvent: () -> Unit) {
     val dk = isDanish(uiLocale())
     val pageLang = if (dk) "da" else "en"
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_settings)) }) }) { pad ->
+    Scaffold(topBar = { TopBar(title = { Text(stringResource(R.string.tab_settings)) }) }) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
             Heading(stringResource(R.string.set_feed))
             SwitchRow(stringResource(R.string.set_students), prefs.studentsFirst, stringResource(R.string.set_students_hint)) {
@@ -93,7 +95,7 @@ fun SettingsScreen(openListener: () -> Unit, openAddEvent: () -> Unit) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+                Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, contentDescription = null)
             }
             SwitchRow(stringResource(R.string.set_hide), prefs.hideOriginal, stringResource(R.string.set_hide_hint)) { g.prefs.setHideOriginal(it) }
             SwitchRow(stringResource(R.string.set_check_posts), prefs.checkPosts, stringResource(R.string.set_check_posts_hint)) { g.prefs.setCheckPosts(it) }
@@ -149,6 +151,6 @@ private fun Hint0(text: String) {
 private fun Link(text: String, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClick = onClick), verticalAlignment = Alignment.CenterVertically) {
         Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-        Icon(Ic.OpenInNew, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Icon(Ic.OpenInNew, contentDescription = null, tint = G.Muted)
     }
 }

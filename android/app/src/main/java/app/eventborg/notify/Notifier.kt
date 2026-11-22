@@ -1,5 +1,7 @@
 package app.eventborg.notify
 
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.PendingIntent
@@ -18,7 +20,7 @@ import app.eventborg.data.Ev
 import app.eventborg.ui.Lang
 import app.eventborg.ui.calendarIntent
 import app.eventborg.ui.cardWhen
-import app.eventborg.ui.catColor
+import app.eventborg.ui.theme.G
 import app.eventborg.ui.catEmoji
 import app.eventborg.ui.catLabel
 import app.eventborg.ui.venueText
@@ -81,7 +83,7 @@ class Notifier(private val app: Context) {
 
     private fun builder(channel: String) = NotificationCompat.Builder(app, channel)
         .setSmallIcon(R.drawable.ic_stat)
-        .setColor(app.getColor(R.color.launcher_bg))
+        .setColor(app.getColor(R.color.notif_accent))
         .setAutoCancel(true)
         .setOnlyAlertOnce(true)
 
@@ -93,10 +95,12 @@ class Notifier(private val app: Context) {
         val px = (64 * app.resources.displayMetrics.density).toInt()
         val bmp = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
         val cv = Canvas(bmp)
-        cv.drawCircle(px / 2f, px / 2f, px / 2f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = catColor(c, false).toArgb() })
+        cv.drawCircle(px / 2f, px / 2f, px / 2f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = G.Raised.toArgb() })
         val tp = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = px * 0.5f
+            textSize = px * 0.44f
             textAlign = Paint.Align.CENTER
+            alpha = 190
+            colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0f) })
         }
         cv.drawText(catEmoji(c), px / 2f, px / 2f - (tp.fontMetrics.ascent + tp.fontMetrics.descent) / 2, tp)
         return bmp

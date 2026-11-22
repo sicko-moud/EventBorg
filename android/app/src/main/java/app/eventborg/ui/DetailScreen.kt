@@ -1,5 +1,8 @@
 package app.eventborg.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.filled.Star
+import app.eventborg.ui.theme.G
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,17 +24,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -59,6 +62,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.TopBar
+import app.eventborg.ui.theme.SecondaryButton
+import app.eventborg.ui.theme.PrimaryButton
 import app.eventborg.R
 import app.eventborg.data.Ev
 import app.eventborg.graph
@@ -78,14 +84,14 @@ fun DetailScreen(id: String, back: () -> Unit, openSource: (String) -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            TopBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) }
+                    IconButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back)) }
                 },
                 actions = {
                     if (ev != null) {
-                        IconButton(onClick = { ctx.share(ev, locale) }) { Icon(Icons.Filled.Share, stringResource(R.string.share)) }
+                        IconButton(onClick = { ctx.share(ev, locale) }) { Icon(Icons.Outlined.Share, stringResource(R.string.share)) }
                         StarButton(saved, R.string.unsave, R.string.save) { g.prefs.toggleSaved(id) }
                     }
                 },
@@ -94,10 +100,11 @@ fun DetailScreen(id: String, back: () -> Unit, openSource: (String) -> Unit) {
         bottomBar = {
             val link = ev?.e?.url ?: ev?.e?.src?.firstOrNull()?.url
             if (link != null) {
-                Surface(tonalElevation = 3.dp) {
-                    Button(
+                Column(Modifier.background(G.Bg)) {
+                    HorizontalDivider(color = G.Line)
+                    PrimaryButton(
                         onClick = { ctx.openWeb(link) },
-                        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).heightIn(min = 48.dp),
+                        modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp).heightIn(min = 48.dp),
                     ) { Text(stringResource(R.string.tickets)) }
                 }
             }
@@ -136,15 +143,15 @@ private fun Body(ev: Ev, locale: Locale, favCats: Set<String>, favSrcs: Set<Stri
             textDecoration = if (ev.cancelled) TextDecoration.LineThrough else null,
         )
         Spacer(Modifier.height(12.dp))
-        Info(Icons.Filled.DateRange, detailWhen(ctx, ev, locale))
+        Info(Icons.Outlined.DateRange, detailWhen(ctx, ev, locale))
         if (e.v != null) {
             val place = listOfNotNull(e.v.n, listOfNotNull(e.v.addr, e.v.town).joinToString(", ").ifEmpty { null }).joinToString("\n")
-            Info(Icons.Filled.Place, place, stringResource(R.string.open_map)) { ctx.openMap(e) }
+            Info(Icons.Outlined.Place, place, stringResource(R.string.open_map)) { ctx.openMap(e) }
         }
-        priceText(ctx, e)?.let { Info(Icons.Filled.ShoppingCart, it) }
-        e.org?.let { Info(Icons.Filled.Person, stringResource(R.string.organizer, it)) }
-        e.age?.let { Info(Icons.Filled.Face, stringResource(R.string.age, it)) }
-        e.lang?.let { l -> Info(Icons.Filled.Info, stringResource(R.string.language, Locale.forLanguageTag(l).getDisplayLanguage(locale))) }
+        priceText(ctx, e)?.let { Info(Icons.Outlined.ShoppingCart, it) }
+        e.org?.let { Info(Icons.Outlined.Person, stringResource(R.string.organizer, it)) }
+        e.age?.let { Info(Icons.Outlined.Face, stringResource(R.string.age, it)) }
+        e.lang?.let { l -> Info(Icons.Outlined.Info, stringResource(R.string.language, Locale.forLanguageTag(l).getDisplayLanguage(locale))) }
 
         Spacer(Modifier.height(8.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -152,19 +159,19 @@ private fun Body(ev: Ev, locale: Locale, favCats: Set<String>, favSrcs: Set<Stri
             FilterChip(
                 fav,
                 { g.prefs.toggleCat(e.c) },
-                { Text(catEmoji(e.c) + " " + stringResource(catLabel(e.c))) },
+                { Text(stringResource(catLabel(e.c))) },
                 trailingIcon = { Icon(if (fav) Icons.Filled.Star else Ic.StarBorder, stringResource(if (fav) R.string.unfav_cat else R.string.fav_cat), Modifier.size(18.dp)) },
             )
-            e.tags.take(4).forEach { Tag("#$it", MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.colorScheme.onSurfaceVariant) }
+            e.tags.take(4).forEach { Tag("#$it") }
         }
 
         Row(Modifier.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { ctx.addToCalendar(ev) }) {
-                Icon(Icons.Filled.DateRange, null, Modifier.size(18.dp))
+            SecondaryButton(onClick = { ctx.addToCalendar(ev) }) {
+                Icon(Icons.Outlined.DateRange, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(R.string.add_calendar))
             }
-            OutlinedButton(onClick = { g.prefs.toggleSaved(e.id) }) {
+            SecondaryButton(onClick = { g.prefs.toggleSaved(e.id) }) {
                 Icon(if (saved) Icons.Filled.Star else Ic.StarBorder, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))
                 Text(stringResource(if (saved) R.string.saved else R.string.save))
@@ -178,7 +185,7 @@ private fun Body(ev: Ev, locale: Locale, favCats: Set<String>, favSrcs: Set<Stri
             var open by rememberSaveable(e.id) { mutableStateOf(false) }
             TextButton(onClick = { open = !open }) {
                 Text(stringResource(if (open) R.string.hide_original else R.string.show_original))
-                Icon(if (open) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, null)
+                Icon(if (open) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown, null)
             }
             if (open) {
                 Text(desc, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.animateContentSize())
@@ -218,7 +225,7 @@ private fun Info(icon: ImageVector, text: String, actionLabel: String? = null, o
         }.padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = null, tint = G.Muted, modifier = Modifier.size(20.dp))
         Spacer(Modifier.width(12.dp))
         Text(
             text,

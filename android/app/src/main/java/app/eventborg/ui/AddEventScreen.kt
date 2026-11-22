@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,6 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import app.eventborg.ui.theme.TopBar
+import app.eventborg.ui.theme.Field
+import app.eventborg.ui.theme.SecondaryButton
+import app.eventborg.ui.theme.PrimaryButton
 import app.eventborg.BuildConfig
 import app.eventborg.R
 import app.eventborg.data.Channels
@@ -57,9 +61,9 @@ fun AddEventScreen(back: () -> Unit, go: (Any) -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            TopBar(
                 title = { Text(stringResource(R.string.ae_title)) },
-                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back)) } },
             )
         },
     ) { pad ->
@@ -70,7 +74,7 @@ fun AddEventScreen(back: () -> Unit, go: (Any) -> Unit) {
             Text(stringResource(R.string.ae_share), style = MaterialTheme.typography.bodyMedium)
 
             Heading(stringResource(R.string.ae_paste_h))
-            OutlinedTextField(
+            Field(
                 text,
                 { text = it.take(4000) },
                 modifier = Modifier.fillMaxWidth(),
@@ -78,8 +82,8 @@ fun AddEventScreen(back: () -> Unit, go: (Any) -> Unit) {
                 minLines = 3,
             )
             Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = { go(DraftR(text = text.trim())) }, enabled = text.trim().length >= 10) { Text(stringResource(R.string.ae_check)) }
-                OutlinedButton(onClick = { pick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
+                PrimaryButton(onClick = { go(DraftR(text = text.trim())) }, enabled = text.trim().length >= 10) { Text(stringResource(R.string.ae_check)) }
+                SecondaryButton(onClick = { pick.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
                     Text(stringResource(R.string.ae_pick))
                 }
             }

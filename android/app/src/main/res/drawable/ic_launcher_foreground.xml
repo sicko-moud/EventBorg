@@ -1,18 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- art/ticket-foreground.svg: ticket outline, perforation, accent dot; scaled .72 into the adaptive-icon safe zone. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M37,38h34a5,5 0,0 1,5 5v26a5,5 0,0 1,-5 5h-34a5,5 0,0 1,-5 -5v-26a5,5 0,0 1,5 -5z" />
-    <path
-        android:fillColor="#F5BF48"
-        android:pathData="M37,38h34a5,5 0,0 1,5 5v5h-44v-5a5,5 0,0 1,5 -5z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M42,32h5v11h-5zM61,32h5v11h-5z" />
-    <path
-        android:fillColor="#0B5FA5"
-        android:pathData="M32,61c5,0 7,-4 11,-4s6,4 11,4s7,-4 11,-4s6,4 11,4v8a5,5 0,0 1,-5 5h-34a5,5 0,0 1,-5 -5z" />
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <group
+        android:pivotX="50"
+        android:pivotY="50"
+        android:scaleX="0.72"
+        android:scaleY="0.72">
+        <path
+            android:pathData="M24,34h52v10a6,6 0,0 0,0 12v10H24V56a6,6 0,0 0,0 -12z"
+            android:strokeColor="#E6E4E0"
+            android:strokeLineJoin="round"
+            android:strokeWidth="3" />
+        <path
+            android:pathData="M58,38v3M58,44v3M58,50v3M58,56v3"
+            android:strokeColor="#55534F"
+            android:strokeWidth="2" />
+        <path
+            android:fillColor="#C8B89A"
+            android:pathData="M37,50a4,4 0,1 0,8 0a4,4 0,1 0,-8 0z" />
+    </group>
 </vector>

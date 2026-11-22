@@ -1,5 +1,7 @@
 package app.eventborg.ui
 
+import androidx.compose.foundation.layout.Box
+import app.eventborg.ui.theme.G
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,9 +18,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +48,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.TopBar
+import app.eventborg.ui.theme.Field
 import app.eventborg.R
 import app.eventborg.data.N_EVENTS
 import app.eventborg.data.N_POSTS
@@ -88,7 +92,7 @@ fun SourceRow(s: Source, fav: Boolean, onFav: () -> Unit, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(sourceStatus(s), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+            Text(sourceStatus(s), style = MaterialTheme.typography.bodySmall, color = G.Faint)
         }
         StarButton(fav, R.string.unfav_source, R.string.fav_source, onFav)
     }
@@ -104,11 +108,11 @@ fun SourcesScreen(openSource: (String) -> Unit, openAddEvent: () -> Unit) {
     var suggest by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.tab_sources)) }) },
+        topBar = { TopBar(title = { Text(stringResource(R.string.tab_sources)) }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { suggest = true },
-                icon = { Icon(Icons.Filled.Add, null) },
+                icon = { Icon(Icons.Outlined.Add, null) },
                 text = { Text(stringResource(R.string.suggest_source)) },
             )
         },
@@ -125,7 +129,7 @@ fun SourcesScreen(openSource: (String) -> Unit, openAddEvent: () -> Unit) {
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(Icons.AutoMirrored.Outlined.KeyboardArrowRight, null, tint = G.Muted)
                 }
             }
             val problem = status.problem
@@ -166,15 +170,15 @@ private fun SuggestDialog(close: () -> Unit) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.suggest_body), style = MaterialTheme.typography.bodyMedium)
-                OutlinedTextField(name, { name = it.take(100) }, label = { Text(stringResource(R.string.suggest_name)) }, singleLine = true)
-                OutlinedTextField(
+                Field(name, { name = it.take(100) }, label = { Text(stringResource(R.string.suggest_name)) }, singleLine = true)
+                Field(
                     link,
                     { link = it.take(300) },
                     label = { Text(stringResource(R.string.suggest_link)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
                 )
-                OutlinedTextField(note, { note = it.take(500) }, label = { Text(stringResource(R.string.suggest_note)) }, minLines = 2)
+                Field(note, { note = it.take(500) }, label = { Text(stringResource(R.string.suggest_note)) }, minLines = 2)
                 Text(stringResource(R.string.suggest_public), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
@@ -215,9 +219,9 @@ fun SourcePage(id: String, back: () -> Unit, open: (String) -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            TopBar(
                 title = { Text(s?.n ?: "", maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back)) } },
                 actions = {
                     if (s != null) StarButton(id in prefs.favSrcs, R.string.unfav_source, R.string.fav_source) { g.prefs.toggleSource(id) }
                 },
@@ -244,7 +248,7 @@ fun SourcePage(id: String, back: () -> Unit, open: (String) -> Unit) {
                 }
                 SectionHeader(stringResource(R.string.src_notify))
                 Column(Modifier.padding(horizontal = 16.dp)) {
-                    if (s.pri) Text(stringResource(R.string.src_priority), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                    if (s.pri) Box(Modifier.padding(top = 12.dp)) { StatusLabel(stringResource(R.string.src_priority)) }
                     SwitchRow(stringResource(R.string.src_n_events), prefs.on(N_EVENTS, id)) { g.prefs.setSourceOn(N_EVENTS, id, it) }
                     if (storyEligible(s)) {
                         SwitchRow(stringResource(R.string.src_n_stories), prefs.on(N_STORIES, id)) { g.prefs.setSourceOn(N_STORIES, id, it) }

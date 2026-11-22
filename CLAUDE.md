@@ -165,7 +165,7 @@ PUSH RULES
 
 ANDROID APP
 Stack:
-- Kotlin, Jetpack Compose + Material 3 (dynamic color, dark mode), single Activity, minSdk 26, latest stable compile/target SDK, manual DI.
+- Kotlin, Jetpack Compose + Material 3 styled with the Graphite design system (DESIGN.md: dark only, no dynamic color, warm neutrals, one muted accent; launcher icon from art/ticket-*.svg), single Activity, minSdk 26, latest stable compile/target SDK, manual DI.
 - Default dependencies: AndroidX core/activity/lifecycle, Compose BOM, navigation-compose, kotlinx-serialization, OkHttp, Coil, DataStore, androidx.browser, profileinstaller, firebase-messaging. Add another only if it removes a lot of code or clearly improves the experience and the APK stays within the cap; log why. Avoid heavy frameworks (Hilt, Room, Retrofit) unless the gain is clear. Never add analytics, ads or tracking SDKs.
 Lightweight:
 - No background services, no WorkManager polling, no wakelocks. The only background entry points are FCM and the optional, system-bound notification listener.

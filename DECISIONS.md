@@ -129,3 +129,7 @@
 - Posts: an event verdict shows no local alert (the event push follows once published); otherwise "New post from <name>" for watched, favourite or priority sources. Its tap fires Instagram's own intent while held.
 - Per-source switches (events, stories, posts) are local filters plus topic removal; watched and priority sources now also get s_<id> event topics in "Favourites only" mode.
 - Profile links: query strings are dropped before saving (parseLink rebuilds canonical URLs; WatchStore cleans again); profile.php keeps only id.
+- Design (2026-11-22): the app follows the Graphite design system (DESIGN.md, from the user): dark only, dynamic color off, tokens in ui/theme/Theme.kt; replaces the spec's "dynamic color, dark mode". Launcher, monochrome and status-bar icons are the ticket from art/ (VectorDrawable; the dashed perforation is four short strokes since vectors have no dash arrays).
+- Design: Inter / IBM Plex Mono are not bundled (would add ~200 KB+); the system sans and monospace stand in, as DESIGN.md allows.
+- Design: Material 3 buttons are always pill-shaped and text fields focus in `primary`, so PrimaryButton / SecondaryButton / Field / TopBar wrappers carry the 6dp radius, line borders, muted focus and the background-coloured top bar.
+- Design: category art keeps its emoji but drawn grey on the raised tone (no per-category colours); story circles are neutral with an accent dot for unseen; student events get an accent status label instead of 🎓; the bottom nav is a custom row (surface, top line, accent bar under the selected tab).

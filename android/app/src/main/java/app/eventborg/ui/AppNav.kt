@@ -1,14 +1,35 @@
 package app.eventborg.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import app.eventborg.ui.theme.G
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.automirrored.outlined.List
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -54,11 +75,11 @@ import kotlin.reflect.KClass
 private class Tab(val route: Any, val cls: KClass<*>, val label: Int, val icon: ImageVector)
 
 private val TABS = listOf(
-    Tab(FeedR, FeedR::class, R.string.tab_feed, Icons.Filled.Home),
-    Tab(SavedR, SavedR::class, R.string.tab_saved, Icons.Filled.Star),
-    Tab(WatchR(), WatchR::class, R.string.tab_watch, Icons.Filled.Notifications),
-    Tab(SourcesR, SourcesR::class, R.string.tab_sources, Icons.AutoMirrored.Filled.List),
-    Tab(SettingsR, SettingsR::class, R.string.tab_settings, Icons.Filled.Settings),
+    Tab(FeedR, FeedR::class, R.string.tab_feed, Icons.Outlined.Home),
+    Tab(SavedR, SavedR::class, R.string.tab_saved, Icons.Outlined.Star),
+    Tab(WatchR(), WatchR::class, R.string.tab_watch, Icons.Outlined.Notifications),
+    Tab(SourcesR, SourcesR::class, R.string.tab_sources, Icons.AutoMirrored.Outlined.List),
+    Tab(SettingsR, SettingsR::class, R.string.tab_settings, Icons.Outlined.Settings),
 )
 
 private fun NavHostController.tab(route: Any) = navigate(route) {
@@ -93,21 +114,31 @@ fun AppNav(links: MutableStateFlow<Any?>) {
         contentWindowInsets = WindowInsets(0),
         bottomBar = {
             if (topLevel) {
-                NavigationBar {
-                    TABS.forEach { t ->
-                        NavigationBarItem(
-                            selected = dest?.hierarchy?.any { it.hasRoute(t.cls) } == true,
-                            onClick = { nav.tab(t.route) },
-                            icon = { Icon(t.icon, contentDescription = null) },
-                            label = {
+                Column(Modifier.background(G.Surface)) {
+                    HorizontalDivider(color = G.Line)
+                    Row(Modifier.fillMaxWidth().navigationBarsPadding().selectableGroup()) {
+                        TABS.forEach { t ->
+                            val selected = dest?.hierarchy?.any { it.hasRoute(t.cls) } == true
+                            val tint by animateColorAsState(if (selected) G.Text else G.Muted, tween(150), label = "tab")
+                            Column(
+                                Modifier.weight(1f).heightIn(min = 64.dp)
+                                    .selectable(selected, role = Role.Tab, onClick = { nav.tab(t.route) })
+                                    .padding(top = 10.dp, bottom = 8.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Icon(t.icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                                Spacer(Modifier.height(4.dp))
                                 BasicText(
                                     stringResource(t.label),
-                                    style = LocalTextStyle.current.copy(color = LocalContentColor.current),
+                                    style = MaterialTheme.typography.labelMedium.copy(color = tint),
                                     maxLines = 1,
                                     autoSize = TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = 12.sp, stepSize = 0.5.sp),
+                                    modifier = Modifier.padding(horizontal = 2.dp),
                                 )
-                            },
-                        )
+                                Spacer(Modifier.height(5.dp))
+                                Box(Modifier.size(width = 16.dp, height = 2.dp).background(if (selected) G.Accent else Color.Transparent, G.Radius))
+                            }
+                        }
                     }
                 }
             }

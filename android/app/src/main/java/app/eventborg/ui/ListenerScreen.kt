@@ -1,5 +1,6 @@
 package app.eventborg.ui
 
+import app.eventborg.ui.theme.G
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +15,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,6 +37,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import app.eventborg.ui.theme.TopBar
+import app.eventborg.ui.theme.SecondaryButton
+import app.eventborg.ui.theme.PrimaryButton
 import app.eventborg.R
 import app.eventborg.graph
 import app.eventborg.notify.Listen
@@ -53,24 +57,24 @@ fun ListenerScreen(back: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            TopBar(
                 title = { Text(stringResource(R.string.l_title)) },
-                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) } },
+                navigationIcon = { IconButton(onClick = back) { Icon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(R.string.back)) } },
             )
         },
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
             if (on) {
-                Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(16.dp), modifier = Modifier.fillMaxWidth()) {
-                    Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
+                Surface(color = G.Surface, shape = G.Radius, border = G.Border, modifier = Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Outlined.CheckCircle, null, tint = G.Accent)
                         Spacer(Modifier.width(12.dp))
                         Text(stringResource(R.string.l_on), style = MaterialTheme.typography.titleSmall)
                     }
                 }
                 Heading(stringResource(R.string.l_setup))
                 Step("1", stringResource(R.string.l_step_silent))
-                OutlinedButton(onClick = {
+                SecondaryButton(onClick = {
                     if (!Listen.openAppNotifications(ctx, IG_PKG)) Toast.makeText(ctx, R.string.no_app, Toast.LENGTH_SHORT).show()
                 }, modifier = Modifier.padding(start = 32.dp, bottom = 8.dp)) { Text(stringResource(R.string.l_open_ig_settings)) }
                 Step("2", stringResource(R.string.l_step_bell))
@@ -81,7 +85,7 @@ fun ListenerScreen(back: () -> Unit) {
                 Para(stringResource(R.string.l_never))
                 Para(stringResource(R.string.l_posts))
                 Spacer(Modifier.height(8.dp))
-                OutlinedButton(onClick = {
+                SecondaryButton(onClick = {
                     g.prefs.setListen(false)
                     Listen.setEnabled(ctx, false)
                 }) { Text(stringResource(R.string.l_turn_off)) }
@@ -101,7 +105,7 @@ fun ListenerScreen(back: () -> Unit) {
                 Para(stringResource(R.string.l_share))
                 Para(stringResource(R.string.l_optional))
                 Spacer(Modifier.height(8.dp))
-                Button(
+                PrimaryButton(
                     onClick = {
                         g.prefs.setListen(true)
                         Listen.setEnabled(ctx, true)
