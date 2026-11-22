@@ -1,5 +1,8 @@
 package app.eventborg.ui
 
+import androidx.compose.foundation.border
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.layout.Box
 import app.eventborg.ui.theme.G
 import android.widget.Toast
@@ -96,6 +99,7 @@ fun SourceRow(s: Source, fav: Boolean, onFav: () -> Unit, onClick: () -> Unit) {
         }
         StarButton(fav, R.string.unfav_source, R.string.fav_source, onFav)
     }
+    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = G.Line)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,6 +118,11 @@ fun SourcesScreen(openSource: (String) -> Unit, openAddEvent: () -> Unit) {
                 onClick = { suggest = true },
                 icon = { Icon(Icons.Outlined.Add, null) },
                 text = { Text(stringResource(R.string.suggest_source)) },
+                shape = G.Radius,
+                containerColor = G.Raised,
+                contentColor = G.Text,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+                modifier = Modifier.border(1.dp, G.Line, G.Radius),
             )
         },
     ) { pad ->

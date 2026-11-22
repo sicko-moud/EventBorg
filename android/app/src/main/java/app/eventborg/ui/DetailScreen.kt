@@ -165,7 +165,7 @@ private fun Body(ev: Ev, locale: Locale, favCats: Set<String>, favSrcs: Set<Stri
             e.tags.take(4).forEach { Tag("#$it") }
         }
 
-        Row(Modifier.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(Modifier.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             SecondaryButton(onClick = { ctx.addToCalendar(ev) }) {
                 Icon(Icons.Outlined.DateRange, null, Modifier.size(18.dp))
                 Spacer(Modifier.width(6.dp))

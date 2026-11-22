@@ -1,5 +1,6 @@
 package app.eventborg.ui
 
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.draw.clip
 import app.eventborg.ui.theme.G
@@ -302,6 +303,7 @@ private fun WatchRow(
             }
         }
     }
+    HorizontalDivider(Modifier.padding(horizontal = 16.dp), color = G.Line)
 }
 
 @Composable
