@@ -37,8 +37,8 @@ android {
         applicationId = "app.eventborg"
         minSdk = 26
         targetSdk = 37
-        versionCode = 9
-        versionName = "0.8.0"
+        versionCode = 10
+        versionName = "0.8.1"
         buildConfigField("String", "DATA_URL", "\"https://sicko-moud.github.io/EventBorg/\"")
         buildConfigField("String", "WORKER_URL", "\"https://eventborg.eventborg-worker.workers.dev\"")
         buildConfigField("boolean", "FIREBASE", "${firebase != null}")

@@ -29,8 +29,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import app.eventborg.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -62,8 +65,27 @@ private val Scheme = darkColorScheme(
     surfaceContainer = G.Surface, surfaceContainerHigh = G.Raised, surfaceContainerHighest = G.Raised,
 )
 
-// System sans and monospace stand in for Inter and IBM Plex Mono (not bundled, to keep the APK small).
-private val Base = Typography()
+// Inter (static Latin subsets of the variable font, opsz 14) for UI text; IBM Plex Mono, unmodified, for labels.
+// Licences (SIL OFL 1.1) ship in assets/licenses.
+private val Inter = FontFamily(
+    Font(R.font.inter_regular, FontWeight.Normal),
+    Font(R.font.inter_medium, FontWeight.Medium),
+    Font(R.font.inter_semibold, FontWeight.SemiBold),
+    Font(R.font.inter_semibold, FontWeight.Bold),
+)
+private val PlexMono = FontFamily(Font(R.font.ibm_plex_mono_regular, FontWeight.Normal))
+
+private fun TextStyle.inter() = copy(fontFamily = Inter)
+
+private val Base = Typography().run {
+    Typography(
+        displayLarge = displayLarge.inter(), displayMedium = displayMedium.inter(), displaySmall = displaySmall.inter(),
+        headlineLarge = headlineLarge.inter(), headlineMedium = headlineMedium.inter(), headlineSmall = headlineSmall.inter(),
+        titleLarge = titleLarge.inter(), titleMedium = titleMedium.inter(), titleSmall = titleSmall.inter(),
+        bodyLarge = bodyLarge.inter(), bodyMedium = bodyMedium.inter(), bodySmall = bodySmall.inter(),
+        labelLarge = labelLarge.inter(), labelMedium = labelMedium.inter(), labelSmall = labelSmall.inter(),
+    )
+}
 private val Type = Base.copy(
     headlineSmall = Base.headlineSmall.copy(fontSize = 24.sp, fontWeight = FontWeight.Medium, letterSpacing = (-0.4).sp),
     titleLarge = Base.titleLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.Medium),
@@ -71,7 +93,7 @@ private val Type = Base.copy(
     titleSmall = Base.titleSmall.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium),
     bodyMedium = Base.bodyMedium.copy(fontSize = 14.sp, lineHeight = 22.sp),
     bodySmall = Base.bodySmall.copy(fontSize = 12.sp, color = G.Muted),
-    labelSmall = Base.labelSmall.copy(fontSize = 11.sp, fontFamily = FontFamily.Monospace, letterSpacing = 1.2.sp),
+    labelSmall = Base.labelSmall.copy(fontSize = 11.sp, fontFamily = PlexMono, letterSpacing = 1.2.sp),
 )
 
 @Composable
