@@ -1,5 +1,6 @@
 package app.eventborg.ui.theme
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.heightIn
@@ -76,6 +77,15 @@ private val Inter = FontFamily(
 private val PlexMono = FontFamily(Font(R.font.ibm_plex_mono_regular, FontWeight.Normal))
 
 private fun TextStyle.inter() = copy(fontFamily = Inter)
+
+private val FONTS = intArrayOf(R.font.inter_regular, R.font.inter_medium, R.font.ibm_plex_mono_regular, R.font.inter_semibold)
+
+// Parses the bundled fonts off the main thread while the activity starts. Resources caches typefaces, so the first
+// text layout (which loads them blocking on the main thread) finds them ready.
+fun warmFonts(ctx: Context) {
+    val res = ctx.applicationContext.resources
+    Thread { FONTS.forEach { runCatching { res.getFont(it) } } }.start()
+}
 
 private val Base = Typography().run {
     Typography(

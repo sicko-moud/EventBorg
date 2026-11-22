@@ -24,6 +24,7 @@ import app.eventborg.ui.GroupPostsR
 import app.eventborg.ui.Lang
 import app.eventborg.ui.WatchR
 import app.eventborg.ui.theme.GraphiteTheme
+import app.eventborg.ui.theme.warmFonts
 import app.eventborg.watch.isWatchShare
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        warmFonts(this)
         // Dark only: light bar icons over the transparent bars, whatever the system theme.
         enableEdgeToEdge(SystemBarStyle.dark(Color.TRANSPARENT), SystemBarStyle.dark(Color.TRANSPARENT))
         super.onCreate(savedInstanceState)
